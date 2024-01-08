@@ -3,13 +3,13 @@ module RajaBot
 go 1.21.5
 
 require (
+	github.com/AnimeKaizoku/ratelimiter v1.0.9
 	github.com/BurntSushi/toml v1.3.2
-	github.com/FDeghy/RajaGo v1.0.5
+	github.com/FDeghy/RajaGo v1.0.6
 	github.com/PaulSonOfLars/gotgbot/v2 v2.0.0-rc.23
 	github.com/yaa110/go-persian-calendar v1.1.5
 	gorm.io/driver/sqlite v1.5.4
 	gorm.io/gorm v1.25.5
-	github.com/AnimeKaizoku/ratelimiter v1.0.9
 )
 
 require (
