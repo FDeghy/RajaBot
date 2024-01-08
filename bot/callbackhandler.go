@@ -301,15 +301,10 @@ func _cancCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	trainWRs := database.GetActiveTrainWRs(user.UserID)
 	markup := createListMarkup(trainWRs)
+	b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
 	b.SendMessage(ctx.EffectiveChat.Id, createListMsg(trainWRs), &gotgbot.SendMessageOpts{
 		ParseMode:   gotgbot.ParseModeMarkdownV2,
 		ReplyMarkup: markup,
-	})
-	b.EditMessageText(createListMsg(trainWRs), &gotgbot.EditMessageTextOpts{
-		ChatId:      ctx.EffectiveChat.Id,
-		MessageId:   ctx.EffectiveMessage.MessageId,
-		ParseMode:   gotgbot.ParseModeMarkdownV2,
-		ReplyMarkup: *markup,
 	})
 
 	return nil
