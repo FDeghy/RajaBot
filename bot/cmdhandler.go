@@ -88,6 +88,21 @@ func _cancel(b *gotgbot.Bot, ctx *ext.Context) error {
 }
 
 func _list(b *gotgbot.Bot, ctx *ext.Context) error {
+	user := database.GetTgUser(ctx.EffectiveSender.Id())
+	if user == nil {
+		b.SendMessage(ctx.EffectiveChat.Id, AnError, nil)
+		return nil
+	}
+
+	if user.State != "normal" {
+		b.SendMessage(ctx.EffectiveChat.Id, StateErr, nil)
+		return nil
+	}
+
+	trainWRs := database.GetActiveTrainWRs(user.UserID)
+	b.SendMessage(ctx.EffectiveChat.Id, createListMsg(trainWRs), &gotgbot.SendMessageOpts{
+		ParseMode: "MarkdownV2",
+	})
 	return nil
 }
 

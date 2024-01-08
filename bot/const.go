@@ -13,7 +13,8 @@ const (
 	AnError          = "خطای ناشناخته با ادمین تماس بگیرید"
 	PageN            = "صفحه %d"
 	DayMsg           = "تاریخ را انتخاب کنید" + "\n" + "MMM yyyy"
-	TrainSelMsg      = "E dd MMM yyyy"
+	TimeFormat       = "E dd MMM yyyy"
+	TrainSelMsg      = TimeFormat
 	FavSign          = " " + "⭐️"
 	StateErr         = "خطای مرحله! لطفا فعالیت قبلی را کامل کنید یا آن را کنسل کنید"
 	TrainButtonText  = "%s - %s - %s تومان"
@@ -27,4 +28,6 @@ const (
 	CancelOkMsg      = "عملیات ناقص فعلی کنسل شد."
 	NilButton        = "دکمه پوچ رو زدی!"
 	TrainNotFound    = "قطار پیدا نشد! (ممکن است باگ ساعتی رجا باشد، دقایقی دیگر مجدد تست کنید)"
+	EmptyTrainWR     = "درخواست فعالی ندارید."
+	ListReqs         = "لیست درخواست ها:"
 )

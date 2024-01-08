@@ -58,15 +58,6 @@ func createStationsMarkup(page int, prefix string) (*gotgbot.InlineKeyboardMarku
 	return markup, nil
 }
 
-func favoriteSign(st string) string {
-	for _, i := range config.Cfg.Bot.FavoriteStations {
-		if strings.EqualFold(st, i) {
-			return FavSign
-		}
-	}
-	return ""
-}
-
 func createTaqvimMarkup(sal int, mah int) (*gotgbot.InlineKeyboardMarkup, error) {
 	markup := &gotgbot.InlineKeyboardMarkup{}
 	weekDaysName := []gotgbot.InlineKeyboardButton{}
@@ -170,7 +161,7 @@ func createTrainListMarkup(tr database.TrainWR) (*gotgbot.InlineKeyboardMarkup, 
 	}
 
 	for _, train := range trainList.Trains {
-		callbackData := fmt.Sprintf("tr-%d", train.RowID)
+		callbackData := fmt.Sprintf("tr-%d-%s", train.RowID, train.ExitTime)
 		exitTime, _ := time.ParseInLocation("2006-01-02T15:04:05", train.ExitDateTime, ptime.Iran())
 		if time.Now().Unix() >= exitTime.Unix() {
 			callbackData = fmt.Sprintf("oldtr-%d", train.RowID)
@@ -185,35 +176,27 @@ func createTrainListMarkup(tr database.TrainWR) (*gotgbot.InlineKeyboardMarkup, 
 	return markup, nil
 }
 
-func appendEmptyButton(r *[]gotgbot.InlineKeyboardButton, n int) {
-	for i := 0; i < n; i++ {
-		*r = append(*r, gotgbot.InlineKeyboardButton{
-			Text:         " ",
-			CallbackData: "nil",
-		})
+func createListMsg(trs *[]database.TrainWR) string {
+	if len(*trs) == 0 {
+		return EmptyTrainWR
 	}
-}
-
-// 100000 -> 100,000
-func numToMoney(num int) string {
-	n := []byte(fmt.Sprint(num))
-	slices.Reverse(n)
-	var res []byte
-	for i, r := range n {
-		if i%3 == 0 && i != 0 {
-			res = append(res, ',')
-		}
-		res = append(res, r)
+	msg := ListReqs + "\n"
+	for i, tr := range *trs {
+		src, _ := Stations.GetPersianName(tr.Src)
+		dst, _ := Stations.GetPersianName(tr.Dst)
+		msg += fmt.Sprintf(
+			"%v.\n"+
+				">روز: %v\n"+
+				">مبدا: %v\n"+
+				">مقصد: %v\n"+
+				">ساعت: %v\n"+
+				"\n",
+			i,
+			ptime.Unix(tr.Day, 0).Format(TimeFormat),
+			src,
+			dst,
+			tr.Hour,
+		)
 	}
-	slices.Reverse(res)
-	return string(res)
-}
-
-func checkLimit(user database.TgUser) bool {
-	limit := config.Cfg.Bot.UserLimit
-	if user.IsVip {
-		limit = config.Cfg.Bot.VipLimit
-	}
-	activeTrains := database.GetActiveTrainWRs(user.UserID)
-	return len(*activeTrains) >= limit
+	return escapeMarkdown(msg)
 }

@@ -252,7 +252,8 @@ func _trCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	d := strings.TrimPrefix(ctx.CallbackQuery.Data, "tr-")
-	trainId, err := strconv.Atoi(d)
+	data := strings.Split(d, "-")
+	trainId, err := strconv.Atoi(data[0])
 	if err != nil {
 		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
 		return nil
@@ -265,6 +266,7 @@ func _trCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		b.SendMessage(ctx.EffectiveChat.Id, RajaErr, nil)
 	} else {
 		train.TrainId = trainId
+		train.Hour = data[1]
 		database.UpdateTrainWR(train)
 		user.State = "normal"
 		database.UpdateTgUser(user)
