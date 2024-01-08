@@ -101,7 +101,7 @@ func _list(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	trainWRs := database.GetActiveTrainWRs(user.UserID)
 	b.SendMessage(ctx.EffectiveChat.Id, createListMsg(trainWRs), &gotgbot.SendMessageOpts{
-		ParseMode: "MarkdownV2",
+		ParseMode: gotgbot.ParseModeMarkdownV2,
 	})
 	return nil
 }

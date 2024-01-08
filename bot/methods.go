@@ -185,18 +185,18 @@ func createListMsg(trs *[]database.TrainWR) string {
 		src, _ := Stations.GetPersianName(tr.Src)
 		dst, _ := Stations.GetPersianName(tr.Dst)
 		msg += fmt.Sprintf(
-			"%v.\n"+
-				">روز: %v\n"+
-				">مبدا: %v\n"+
-				">مقصد: %v\n"+
-				">ساعت: %v\n"+
+			"%v\\.\n"+
+				">روز\\: %v\n"+
+				">مبدا\\: %v\n"+
+				">مقصد\\: %v\n"+
+				">ساعت\\: %v\n"+
 				"\n",
-			i,
+			i+1,
 			ptime.Unix(tr.Day, 0).Format(TimeFormat),
 			src,
 			dst,
 			tr.Hour,
 		)
 	}
-	return escapeMarkdown(msg)
+	return msg
 }

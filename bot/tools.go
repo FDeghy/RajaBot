@@ -51,12 +51,3 @@ func checkLimit(user database.TgUser) bool {
 	activeTrains := database.GetActiveTrainWRs(user.UserID)
 	return len(*activeTrains) >= limit
 }
-
-func escapeMarkdown(inp string) string {
-	chars := []rune{'_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'}
-	result := inp
-	for _, c := range chars {
-		result = strings.ReplaceAll(result, string(c), "\\"+string(c))
-	}
-	return result
-}
