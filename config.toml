@@ -1,0 +1,21 @@
+[BOT]
+token = "6662259457:AAGyN6i-0gxC2ZVjtTEjY_vXUje7vX74XoY"
+http_proxy = "http://127.0.0.1:2080"
+# * 5 sec
+timeout = 6
+stations_buttons_per_page = 48
+# english names
+favorite_stations = [ "tehran", "qom", "mashad" ]
+admins = [ 433626662 ]
+user_limit = 1
+vip_limit = 3
+
+[DB]
+name = "rajabot"
+
+[RAJA]
+# sec
+timeout = 15
+check_every = 20
+buffer = 50
+worker = 1
