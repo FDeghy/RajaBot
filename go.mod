@@ -9,6 +9,7 @@ require (
 	github.com/yaa110/go-persian-calendar v1.1.5
 	gorm.io/driver/sqlite v1.5.4
 	gorm.io/gorm v1.25.5
+	github.com/AnimeKaizoku/ratelimiter v1.0.9
 )
 
 require (

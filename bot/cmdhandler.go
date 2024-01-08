@@ -87,6 +87,10 @@ func _cancel(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
+func _list(b *gotgbot.Bot, ctx *ext.Context) error {
+	return nil
+}
+
 func _test(b *gotgbot.Bot, ctx *ext.Context) error {
 	markup, _ := createTaqvimMarkup(1402, 12)
 	b.SendMessage(ctx.EffectiveChat.Id, "test", &gotgbot.SendMessageOpts{

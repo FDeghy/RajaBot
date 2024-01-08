@@ -1,15 +1,20 @@
 package bot
 
 import (
+	"RajaBot/config"
+
+	"github.com/AnimeKaizoku/ratelimiter"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
 )
 
 func load(d *ext.Dispatcher) {
+	loadLimiter(d)
 	start := handlers.NewCommand("start", _start)
 	new := handlers.NewCommand("new", _new)
 	cancel := handlers.NewCommand("cancel", _cancel)
+	list := handlers.NewCommand("list", _list)
 	test := handlers.NewCommand("test", _test)
 	pgCallback := handlers.NewCallback(callbackquery.Prefix("pg-"), _pgCallback)
 	pgmCallback := handlers.NewCallback(callbackquery.Prefix("pgm-"), _pgmCallback)
@@ -23,6 +28,7 @@ func load(d *ext.Dispatcher) {
 	d.AddHandler(start)
 	d.AddHandler(new)
 	d.AddHandler(cancel)
+	d.AddHandler(list)
 	d.AddHandler(test)
 	d.AddHandler(pgCallback)
 	d.AddHandler(pgmCallback)
@@ -32,4 +38,11 @@ func load(d *ext.Dispatcher) {
 	d.AddHandler(trCallback)
 	d.AddHandler(oldtrCallback)
 	d.AddHandler(nilCallback)
+}
+
+func loadLimiter(d *ext.Dispatcher) {
+	RateLimiter = ratelimiter.NewLimiter(d, nil)
+	RateLimiter.TextOnly = true
+	RateLimiter.AddExceptionID(config.Cfg.Bot.Admins...)
+	RateLimiter.Start()
 }
