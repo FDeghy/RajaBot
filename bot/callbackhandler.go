@@ -282,6 +282,39 @@ func _oldtrCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
+func _cancCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	user := database.GetTgUser(ctx.EffectiveSender.Id())
+	if user == nil {
+		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+		return nil
+	}
+
+	d := strings.TrimPrefix(ctx.CallbackQuery.Data, "canc-")
+	id, err := strconv.ParseUint(d, 10, 64)
+	if err != nil {
+		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+		return nil
+	}
+
+	core.CancelWork(id)
+	b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: CancOkAlert, ShowAlert: true})
+
+	trainWRs := database.GetActiveTrainWRs(user.UserID)
+	markup := createListMarkup(trainWRs)
+	b.SendMessage(ctx.EffectiveChat.Id, createListMsg(trainWRs), &gotgbot.SendMessageOpts{
+		ParseMode:   gotgbot.ParseModeMarkdownV2,
+		ReplyMarkup: markup,
+	})
+	b.EditMessageText(createListMsg(trainWRs), &gotgbot.EditMessageTextOpts{
+		ChatId:      ctx.EffectiveChat.Id,
+		MessageId:   ctx.EffectiveMessage.MessageId,
+		ParseMode:   gotgbot.ParseModeMarkdownV2,
+		ReplyMarkup: *markup,
+	})
+
+	return nil
+}
+
 // nil
 func _nilCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: NilButton, ShowAlert: true})

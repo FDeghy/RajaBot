@@ -100,8 +100,10 @@ func _list(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	trainWRs := database.GetActiveTrainWRs(user.UserID)
+	markup := createListMarkup(trainWRs)
 	b.SendMessage(ctx.EffectiveChat.Id, createListMsg(trainWRs), &gotgbot.SendMessageOpts{
-		ParseMode: gotgbot.ParseModeMarkdownV2,
+		ParseMode:   gotgbot.ParseModeMarkdownV2,
+		ReplyMarkup: markup,
 	})
 	return nil
 }

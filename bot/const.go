@@ -28,6 +28,8 @@ const (
 	CancelOkMsg      = "عملیات ناقص فعلی کنسل شد."
 	NilButton        = "دکمه پوچ رو زدی!"
 	TrainNotFound    = "قطار پیدا نشد! (ممکن است باگ ساعتی رجا باشد، دقایقی دیگر مجدد تست کنید)"
-	EmptyTrainWR     = "درخواست فعالی ندارید."
+	EmptyTrainWR     = "درخواست فعالی ندارید\\."
 	ListReqs         = "لیست درخواست ها:"
+	CancButtonTxt    = "❌ حذف شماره \"%v\""
+	CancOkAlert      = "با موفقیت حذف شد"
 )

@@ -23,6 +23,7 @@ func load(d *ext.Dispatcher) {
 	taqCallback := handlers.NewCallback(callbackquery.Prefix("taq-"), _taqCallback)
 	trCallback := handlers.NewCallback(callbackquery.Prefix("tr-"), _trCallback)
 	oldtrCallback := handlers.NewCallback(callbackquery.Prefix("oldtr-"), _oldtrCallback)
+	cancCallback := handlers.NewCallback(callbackquery.Prefix("canc-"), _cancCallback)
 	nilCallback := handlers.NewCallback(callbackquery.Equal("nil"), _nilCallback)
 
 	d.AddHandler(start)
@@ -37,6 +38,7 @@ func load(d *ext.Dispatcher) {
 	d.AddHandler(taqCallback)
 	d.AddHandler(trCallback)
 	d.AddHandler(oldtrCallback)
+	d.AddHandler(cancCallback)
 	d.AddHandler(nilCallback)
 }
 

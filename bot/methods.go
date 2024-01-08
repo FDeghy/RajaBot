@@ -200,3 +200,19 @@ func createListMsg(trs *[]database.TrainWR) string {
 	}
 	return msg
 }
+
+func createListMarkup(trs *[]database.TrainWR) *gotgbot.InlineKeyboardMarkup {
+	markup := &gotgbot.InlineKeyboardMarkup{}
+	if len(*trs) == 0 {
+		return markup
+	}
+	for i, tr := range *trs {
+		markup.InlineKeyboard = append(markup.InlineKeyboard, []gotgbot.InlineKeyboardButton{
+			{
+				Text:         fmt.Sprintf(CancButtonTxt, i+1),
+				CallbackData: fmt.Sprintf("canc-%v", tr.Id),
+			},
+		})
+	}
+	return markup
+}

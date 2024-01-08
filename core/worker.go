@@ -47,7 +47,7 @@ func procWorker(q chan struct{}) {
 			for _, tr := range data.TrainList.Trains {
 				trExitTime, _ := time.ParseInLocation("2006-01-02T15:04:05", tr.ExitDateTime, ptime.Iran())
 				if time.Now().Unix() >= trExitTime.Unix() {
-					expireWork(tr.RowID, tr.ExitTime)
+					expireWork(tr.RowID)
 					continue
 				}
 				if tr.Counting > 0 {
