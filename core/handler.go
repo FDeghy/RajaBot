@@ -10,7 +10,7 @@ import (
 	ptime "github.com/yaa110/go-persian-calendar"
 )
 
-func HandleGoFetch(user *database.TgUser, tr *database.TrainWR) error {
+func HandleGoFetch(tr *database.TrainWR) error {
 	wk := Work{
 		Src: tr.Src,
 		Dst: tr.Dst,

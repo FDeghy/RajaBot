@@ -55,7 +55,7 @@ func StartBot() error {
 		return errors.New("failed to start polling updates")
 	}
 
-	log.Printf("Bot started. %v - %v\n", bot.Username, bot.Id)
+	log.Printf("Bot -> Bot started. %v - %v\n", bot.Username, bot.Id)
 
 	// load handlers
 	load(dispatcher)

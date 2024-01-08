@@ -26,6 +26,6 @@ func main() {
 
 	err = bot.StartBot()
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("failed to start bot.\nerror: %v\n", err)
 	}
 }

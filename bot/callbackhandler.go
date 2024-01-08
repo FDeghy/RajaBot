@@ -260,7 +260,7 @@ func _trCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
 	//send to core
-	err = core.HandleGoFetch(user, train)
+	err = core.HandleGoFetch(train)
 	if err != nil {
 		b.SendMessage(ctx.EffectiveChat.Id, RajaErr, nil)
 	} else {

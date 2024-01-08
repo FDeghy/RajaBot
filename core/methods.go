@@ -26,6 +26,23 @@ func sendAlert(trainWR *database.TrainWR, train *raja.GoTrains) {
 	)
 }
 
-func preCloseFetchWorker(wk Work) {
-
+func expireWork(trainId int, exitTime string) {
+	oldTrains := database.GetActiveTrainWRsByTrainId(trainId)
+	for _, i := range *oldTrains {
+		src, _ := stations.GetPersianName(i.Src)
+		dst, _ := stations.GetPersianName(i.Dst)
+		Bot.SendMessage(
+			i.UserID,
+			fmt.Sprintf(
+				ExpireMsg,
+				exitTime,
+				ptime.Unix(i.Day, 0).Format(TrainDate),
+				src,
+				dst,
+			),
+			nil,
+		)
+		i.IsDone = true
+		database.UpdateTrainWR(&i)
+	}
 }

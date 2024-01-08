@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/FDeghy/RajaGo/raja"
+	ptime "github.com/yaa110/go-persian-calendar"
 )
 
 func fetchWorker(wk Work, q chan struct{}, query raja.Query, opt *raja.GetTrainListOpt) {
@@ -44,6 +45,11 @@ func procWorker(q chan struct{}) {
 				continue
 			}
 			for _, tr := range data.TrainList.Trains {
+				trExitTime, _ := time.ParseInLocation("2006-01-02T15:04:05", tr.ExitDateTime, ptime.Iran())
+				if time.Now().Unix() >= trExitTime.Unix() {
+					expireWork(tr.RowID, tr.ExitTime)
+					continue
+				}
 				if tr.Counting > 0 {
 					trWR := database.GetActiveTrainWRsByTrainId(tr.RowID)
 					if len(*trWR) == 0 {
