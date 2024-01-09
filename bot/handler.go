@@ -3,7 +3,7 @@ package bot
 import (
 	"RajaBot/config"
 
-	"github.com/AnimeKaizoku/ratelimiter"
+	"github.com/ALiwoto/ratelimiter"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"

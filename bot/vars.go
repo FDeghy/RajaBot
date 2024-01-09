@@ -1,7 +1,7 @@
 package bot
 
 import (
-	"github.com/AnimeKaizoku/ratelimiter"
+	"github.com/ALiwoto/ratelimiter"
 	"github.com/FDeghy/RajaGo/raja"
 )
 

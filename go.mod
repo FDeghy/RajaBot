@@ -3,7 +3,7 @@ module RajaBot
 go 1.21.5
 
 require (
-	github.com/AnimeKaizoku/ratelimiter v1.0.9
+	github.com/ALiwoto/ratelimiter v1.0.10
 	github.com/BurntSushi/toml v1.3.2
 	github.com/FDeghy/RajaGo v1.0.6
 	github.com/PaulSonOfLars/gotgbot/v2 v2.0.0-rc.23
