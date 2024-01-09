@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/FDeghy/RajaGo/raja"
@@ -13,4 +14,9 @@ var (
 	res      chan *TrainData
 	Bot      *gotgbot.Bot
 	stations *raja.Stations
+)
+
+var (
+	ErrTrainNotFound    = errors.New("درخواست یافت نشد")
+	ErrTrainAlreadyDone = errors.New("درخواست قبلا لغو شده")
 )

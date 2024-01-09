@@ -58,10 +58,13 @@ func expireWork(trainId int) {
 	}
 }
 
-func CancelWork(twrid uint64) {
+func CancelWork(twrid uint64) error {
 	train := database.GetTrainWRByTid(twrid)
 	if train == nil {
-		return
+		return ErrTrainNotFound
+	}
+	if train.IsDone {
+		return ErrTrainAlreadyDone
 	}
 	src, _ := stations.GetPersianName(train.Src)
 	dst, _ := stations.GetPersianName(train.Dst)
@@ -78,4 +81,5 @@ func CancelWork(twrid uint64) {
 	)
 	train.IsDone = true
 	database.UpdateTrainWR(train)
+	return nil
 }

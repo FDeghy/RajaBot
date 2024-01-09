@@ -296,7 +296,11 @@ func _cancCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	core.CancelWork(id)
+	err = core.CancelWork(id)
+	if err != nil {
+		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: err.Error(), ShowAlert: true})
+		return nil
+	}
 	b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: CancOkAlert, ShowAlert: true})
 
 	trainWRs := database.GetActiveTrainWRs(user.UserID)
