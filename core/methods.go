@@ -9,7 +9,7 @@ import (
 	ptime "github.com/yaa110/go-persian-calendar"
 )
 
-func sendAlert(trainWR *database.TrainWR, train *raja.GoTrains) {
+func sendAlert(trainWR database.TrainWR, train raja.GoTrains) {
 	stations, _ := raja.GetStations()
 	src, _ := stations.GetPersianName(trainWR.Src)
 	dst, _ := stations.GetPersianName(trainWR.Dst)

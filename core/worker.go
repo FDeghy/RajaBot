@@ -57,7 +57,7 @@ func procWorker(q chan struct{}) {
 					}
 					for _, trWRData := range *trWR {
 						// shayad ham go sendAlert
-						sendAlert(&trWRData, &tr)
+						sendAlert(trWRData, tr)
 					}
 				}
 			}
