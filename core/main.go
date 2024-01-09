@@ -11,6 +11,7 @@ import (
 
 func StartCore() error {
 	workers = make(map[Work]chan struct{})
+	userTimeCache = make(map[int64]int64)
 	mutex = sync.RWMutex{}
 	res = make(chan *TrainData, config.Cfg.Raja.Buffer)
 	sts, err := raja.GetStations()

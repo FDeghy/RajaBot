@@ -15,9 +15,10 @@ type Config struct {
 		Name string `toml:"name"`
 	} `toml:"DB"`
 	Raja struct {
-		Timeout    int `toml:"timeout"`
-		CheckEvery int `toml:"check_every"`
-		Buffer     int `toml:"buffer"`
-		Worker     int `toml:"worker"`
+		Timeout    int   `toml:"timeout"`
+		CheckEvery int   `toml:"check_every"`
+		AlertEvery int64 `toml:"alert_every"`
+		Buffer     int   `toml:"buffer"`
+		Worker     int   `toml:"worker"`
 	} `toml:"RAJA"`
 }

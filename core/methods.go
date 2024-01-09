@@ -1,8 +1,10 @@
 package core
 
 import (
+	"RajaBot/config"
 	"RajaBot/database"
 	"fmt"
+	"time"
 
 	"github.com/FDeghy/RajaGo/raja"
 	"github.com/PaulSonOfLars/gotgbot/v2"
@@ -10,7 +12,16 @@ import (
 )
 
 func sendAlert(trainWR database.TrainWR, train raja.GoTrains) {
-	stations, _ := raja.GetStations()
+	mutex.RLock()
+	lastUnix, ok := userTimeCache[trainWR.UserID]
+	mutex.RUnlock()
+	if !ok {
+		lastUnix = 0
+	}
+	nowUnix := time.Now().Unix()
+	if nowUnix-lastUnix < config.Cfg.Raja.AlertEvery {
+		return
+	}
 	src, _ := stations.GetPersianName(trainWR.Src)
 	dst, _ := stations.GetPersianName(trainWR.Dst)
 	Bot.SendMessage(
@@ -48,6 +59,9 @@ func sendAlert(trainWR database.TrainWR, train raja.GoTrains) {
 		},
 	)
 
+	mutex.Lock()
+	userTimeCache[trainWR.UserID] = nowUnix
+	mutex.Unlock()
 }
 
 func expireWork(trainId int) {
