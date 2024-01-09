@@ -260,18 +260,36 @@ func _trCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
+
 	//send to core
 	err = core.HandleGoFetch(train)
 	if err != nil {
 		b.SendMessage(ctx.EffectiveChat.Id, RajaErr, nil)
-	} else {
-		train.TrainId = trainId
-		train.Hour = data[1]
-		database.UpdateTrainWR(train)
-		user.State = "normal"
-		database.UpdateTgUser(user)
-		b.SendMessage(ctx.EffectiveChat.Id, successfulCreate, nil)
+		return nil
 	}
+
+	train.TrainId = trainId
+	train.Hour = data[1]
+	database.UpdateTrainWR(train)
+	user.State = "normal"
+	database.UpdateTgUser(user)
+	src, _ := Stations.GetPersianName(train.Src)
+	dst, _ := Stations.GetPersianName(train.Dst)
+	b.SendMessage(ctx.EffectiveChat.Id, successfulCreate, &gotgbot.SendMessageOpts{
+		ReplyMarkup: &gotgbot.InlineKeyboardMarkup{
+			InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
+				{
+					Text: core.RajaSearchButTxt,
+					Url: fmt.Sprintf(
+						core.RajaSearchURL,
+						src,
+						dst,
+						ptime.Unix(train.Day, 0).Format(core.RajaSearchDateFmt),
+					),
+				},
+			}},
+		},
+	})
 
 	return nil
 }

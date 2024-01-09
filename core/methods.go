@@ -25,12 +25,25 @@ func sendAlert(trainWR database.TrainWR, train raja.GoTrains) {
 		),
 		&gotgbot.SendMessageOpts{
 			ReplyMarkup: &gotgbot.InlineKeyboardMarkup{
-				InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
+				InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
 					{
-						Text:         "❌ غیر فعال کردن",
-						CallbackData: fmt.Sprintf("canc-%v", trainWR.Id),
+						{
+							Text:         "❌ غیر فعال کردن",
+							CallbackData: fmt.Sprintf("canc-%v", trainWR.Id),
+						},
 					},
-				}},
+					{
+						{
+							Text: RajaSearchButTxt,
+							Url: fmt.Sprintf(
+								RajaSearchURL,
+								src,
+								dst,
+								ptime.Unix(trainWR.Day, 0).Format(RajaSearchDateFmt),
+							),
+						},
+					},
+				},
 			},
 		},
 	)

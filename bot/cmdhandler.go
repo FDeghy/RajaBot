@@ -109,7 +109,7 @@ func _list(b *gotgbot.Bot, ctx *ext.Context) error {
 }
 
 func _test(b *gotgbot.Bot, ctx *ext.Context) error {
-	markup, _ := createTaqvimMarkup(1402, 12)
+	markup, _ := createTaqvimMarkup(1403, 1)
 	b.SendMessage(ctx.EffectiveChat.Id, "test", &gotgbot.SendMessageOpts{
 		ReplyMarkup: markup,
 	})
