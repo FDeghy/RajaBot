@@ -48,8 +48,8 @@ func sendAlert(trainWR database.TrainWR, train raja.GoTrains) {
 							Text: RajaSearchButTxt,
 							Url: fmt.Sprintf(
 								RajaSearchURL,
-								src,
-								dst,
+								trainWR.Src,
+								trainWR.Dst,
 								ptime.Unix(trainWR.Day, 0).Format(RajaSearchDateFmt),
 							),
 						},

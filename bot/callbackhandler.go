@@ -273,8 +273,6 @@ func _trCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	database.UpdateTrainWR(train)
 	user.State = "normal"
 	database.UpdateTgUser(user)
-	src, _ := Stations.GetPersianName(train.Src)
-	dst, _ := Stations.GetPersianName(train.Dst)
 	b.SendMessage(ctx.EffectiveChat.Id, successfulCreate, &gotgbot.SendMessageOpts{
 		ReplyMarkup: &gotgbot.InlineKeyboardMarkup{
 			InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
@@ -282,8 +280,8 @@ func _trCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 					Text: core.RajaSearchButTxt,
 					Url: fmt.Sprintf(
 						core.RajaSearchURL,
-						src,
-						dst,
+						train.Src,
+						train.Dst,
 						ptime.Unix(train.Day, 0).Format(core.RajaSearchDateFmt),
 					),
 				},
