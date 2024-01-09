@@ -12,3 +12,8 @@ type TrainData struct {
 	TrainList *raja.TrainList
 	Work      Work
 }
+
+type userCache struct {
+	tgUserId int64
+	trainId  int
+}

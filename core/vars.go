@@ -10,11 +10,11 @@ import (
 
 var (
 	workers       map[Work]chan struct{}
-	mutex         sync.RWMutex
+	mutex         *sync.RWMutex
 	res           chan *TrainData
 	Bot           *gotgbot.Bot
 	stations      *raja.Stations
-	userTimeCache map[int64]int64
+	userTimeCache map[userCache]int64
 )
 
 var (

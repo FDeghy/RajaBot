@@ -12,8 +12,12 @@ import (
 )
 
 func sendAlert(trainWR database.TrainWR, train raja.GoTrains) {
+	uCacheKey := userCache{
+		tgUserId: trainWR.UserID,
+		trainId:  trainWR.TrainId,
+	}
 	mutex.RLock()
-	lastUnix, ok := userTimeCache[trainWR.UserID]
+	lastUnix, ok := userTimeCache[uCacheKey]
 	mutex.RUnlock()
 	if !ok {
 		lastUnix = 0
@@ -60,13 +64,16 @@ func sendAlert(trainWR database.TrainWR, train raja.GoTrains) {
 	)
 
 	mutex.Lock()
-	userTimeCache[trainWR.UserID] = nowUnix
+	userTimeCache[uCacheKey] = nowUnix
 	mutex.Unlock()
 }
 
 func expireWork(trainId int) {
 	oldTrains := database.GetActiveTrainWRsByTrainId(trainId)
 	for _, i := range *oldTrains {
+		mutex.Lock()
+		delete(userTimeCache, userCache{tgUserId: i.UserID, trainId: i.TrainId})
+		mutex.Unlock()
 		src, _ := stations.GetPersianName(i.Src)
 		dst, _ := stations.GetPersianName(i.Dst)
 		Bot.SendMessage(
