@@ -93,7 +93,7 @@ func _srcCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		Src:    src,
 		IsDone: false,
 	}
-	tid, err := database.SaveTrainWR(train)
+	tid := database.SaveTrainWR(train)
 	if err != nil {
 		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
 		return nil

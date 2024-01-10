@@ -8,7 +8,10 @@ import (
 )
 
 func StartDatabase() error {
-	db, err := gorm.Open(sqlite.Open(config.Cfg.Database.Name + ".db"))
+	conf := &gorm.Config{
+		SkipDefaultTransaction: true,
+	}
+	db, err := gorm.Open(sqlite.Open(config.Cfg.Database.Name+".db"), conf)
 	if err != nil {
 		return err
 	}
@@ -34,18 +37,20 @@ func GetTgUser(id int64) *TgUser {
 	return user
 }
 
-func SaveTgUser(user *TgUser) error {
+func SaveTgUser(user *TgUser) {
 	mutex.Lock()
-	res := SESSION.Create(user)
+	tx := SESSION.Begin()
+	tx.Save(user)
+	tx.Commit()
 	mutex.Unlock()
-	return res.Error
 }
 
-func UpdateTgUser(user *TgUser) error {
+func UpdateTgUser(user *TgUser) {
 	mutex.Lock()
-	res := SESSION.Save(user)
+	tx := SESSION.Begin()
+	tx.Save(user)
+	tx.Commit()
 	mutex.Unlock()
-	return res.Error
 }
 
 func GetTrainWR(userId int64, day int64, trainId int, src int, dst int) *TrainWR {
@@ -103,22 +108,27 @@ func GetAllActiveTrainWRs() *[]TrainWR {
 	return tr
 }
 
-func SaveTrainWR(tr *TrainWR) (uint64, error) {
+func SaveTrainWR(tr *TrainWR) uint64 {
 	mutex.Lock()
-	res := SESSION.Create(tr)
+	tx := SESSION.Begin()
+	tx.Save(tr)
+	tx.Commit()
 	mutex.Unlock()
-	return tr.Id, res.Error
+	return tr.Id
 }
 
-func UpdateTrainWR(tr *TrainWR) error {
+func UpdateTrainWR(tr *TrainWR) {
 	mutex.Lock()
-	res := SESSION.Save(tr)
+	tx := SESSION.Begin()
+	tx.Save(tr)
+	tx.Commit()
 	mutex.Unlock()
-	return res.Error
 }
 
 func DeleteTrainWR(tr *TrainWR) {
 	mutex.Lock()
-	SESSION.Delete(tr)
+	tx := SESSION.Begin()
+	tx.Delete(tr)
+	tx.Commit()
 	mutex.Unlock()
 }
