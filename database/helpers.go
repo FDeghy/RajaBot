@@ -76,34 +76,34 @@ func GetTrainWRByTid(tid uint64) *TrainWR {
 	return tr
 }
 
-func GetActiveTrainWRs(id int64) *[]TrainWR {
+func GetActiveTrainWRs(id int64) []*TrainWR {
 	mutex.RLock()
-	tr := &[]TrainWR{}
-	SESSION.Where("user_id = ? AND is_done = ?", id, false).Find(tr)
+	tr := []*TrainWR{}
+	SESSION.Where("user_id = ? AND is_done = ?", id, false).Find(&tr)
 	mutex.RUnlock()
 	return tr
 }
 
-func GetActiveTrainWRsByTrainId(train_id int) *[]TrainWR {
+func GetActiveTrainWRsByTrainId(train_id int) []*TrainWR {
 	mutex.RLock()
-	tr := &[]TrainWR{}
-	SESSION.Where("train_id = ? AND is_done = ?", train_id, false).Find(tr)
+	tr := []*TrainWR{}
+	SESSION.Where("train_id = ? AND is_done = ?", train_id, false).Find(&tr)
 	mutex.RUnlock()
 	return tr
 }
 
-func GetActiveTrainWRsByInfo(day int64, src int, dst int) *[]TrainWR {
+func GetActiveTrainWRsByInfo(day int64, src int, dst int) []*TrainWR {
 	mutex.RLock()
-	tr := &[]TrainWR{}
-	SESSION.Where("day = ? AND src = ? AND dst = ? AND is_done = ?", day, src, dst, false).Find(tr)
+	tr := []*TrainWR{}
+	SESSION.Where("day = ? AND src = ? AND dst = ? AND is_done = ?", day, src, dst, false).Find(&tr)
 	mutex.RUnlock()
 	return tr
 }
 
-func GetAllActiveTrainWRs() *[]TrainWR {
+func GetAllActiveTrainWRs() []*TrainWR {
 	mutex.RLock()
-	tr := &[]TrainWR{}
-	SESSION.Where("is_done = ? AND train_id != ?", false, 0).Find(tr)
+	tr := []*TrainWR{}
+	SESSION.Where("is_done = ? AND train_id != ?", false, 0).Find(&tr)
 	mutex.RUnlock()
 	return tr
 }

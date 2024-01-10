@@ -3,6 +3,7 @@ package core
 import (
 	"RajaBot/config"
 	"RajaBot/database"
+	"RajaBot/prometheus"
 	"fmt"
 	"time"
 
@@ -65,15 +66,12 @@ func sendAlert(trainWR database.TrainWR, train raja.GoTrains) {
 
 	mutex.Lock()
 	userTimeCache[uCacheKey] = nowUnix
+	prometheus.SetUserTimeCacheCount(len(userTimeCache))
 	mutex.Unlock()
 }
 
-func expireWork(trainId int) {
-	oldTrains := database.GetActiveTrainWRsByTrainId(trainId)
-	for _, i := range *oldTrains {
-		mutex.Lock()
-		delete(userTimeCache, userCache{tgUserId: i.UserID, trainId: i.TrainId})
-		mutex.Unlock()
+func expireWork(oldTrains []*database.TrainWR) {
+	for _, i := range oldTrains {
 		src, _ := stations.GetPersianName(i.Src)
 		dst, _ := stations.GetPersianName(i.Dst)
 		Bot.SendMessage(
@@ -88,7 +86,12 @@ func expireWork(trainId int) {
 			nil,
 		)
 		i.IsDone = true
-		database.UpdateTrainWR(&i)
+		database.UpdateTrainWR(i)
+
+		mutex.Lock()
+		delete(userTimeCache, userCache{tgUserId: i.UserID, trainId: i.TrainId})
+		prometheus.SetUserTimeCacheCount(len(userTimeCache))
+		mutex.Unlock()
 	}
 }
 
@@ -100,6 +103,7 @@ func CancelWork(twrid uint64) error {
 	if train.IsDone {
 		return ErrTrainAlreadyDone
 	}
+
 	src, _ := stations.GetPersianName(train.Src)
 	dst, _ := stations.GetPersianName(train.Dst)
 	Bot.SendMessage(
@@ -115,5 +119,11 @@ func CancelWork(twrid uint64) error {
 	)
 	train.IsDone = true
 	database.UpdateTrainWR(train)
+
+	mutex.Lock()
+	delete(userTimeCache, userCache{tgUserId: train.UserID, trainId: train.TrainId})
+	prometheus.SetUserTimeCacheCount(len(userTimeCache))
+	mutex.Unlock()
+
 	return nil
 }

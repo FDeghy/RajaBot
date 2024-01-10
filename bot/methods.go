@@ -176,12 +176,12 @@ func createTrainListMarkup(tr database.TrainWR) (*gotgbot.InlineKeyboardMarkup, 
 	return markup, nil
 }
 
-func createListMsg(trs *[]database.TrainWR) string {
-	if len(*trs) == 0 {
+func createListMsg(trs []*database.TrainWR) string {
+	if len(trs) == 0 {
 		return EmptyTrainWR
 	}
 	msg := ListReqs + "\n"
-	for i, tr := range *trs {
+	for i, tr := range trs {
 		src, _ := Stations.GetPersianName(tr.Src)
 		dst, _ := Stations.GetPersianName(tr.Dst)
 		msg += fmt.Sprintf(
@@ -201,12 +201,12 @@ func createListMsg(trs *[]database.TrainWR) string {
 	return msg
 }
 
-func createListMarkup(trs *[]database.TrainWR) *gotgbot.InlineKeyboardMarkup {
+func createListMarkup(trs []*database.TrainWR) *gotgbot.InlineKeyboardMarkup {
 	markup := &gotgbot.InlineKeyboardMarkup{}
-	if len(*trs) == 0 {
+	if len(trs) == 0 {
 		return markup
 	}
-	for i, tr := range *trs {
+	for i, tr := range trs {
 		markup.InlineKeyboard = append(markup.InlineKeyboard, []gotgbot.InlineKeyboardButton{
 			{
 				Text:         fmt.Sprintf(CancButtonTxt, i+1),

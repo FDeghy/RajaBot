@@ -21,4 +21,7 @@ type Config struct {
 		Buffer     int   `toml:"buffer"`
 		Worker     int   `toml:"worker"`
 	} `toml:"RAJA"`
+	Prometheus struct {
+		AddressBind string `toml:"address_bind"`
+	} `toml:"PROMETHEUS"`
 }

@@ -49,5 +49,5 @@ func checkLimit(user database.TgUser) bool {
 		limit = config.Cfg.Bot.VipLimit
 	}
 	activeTrains := database.GetActiveTrainWRs(user.UserID)
-	return len(*activeTrains) >= limit
+	return len(activeTrains) >= limit
 }

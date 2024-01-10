@@ -3,6 +3,7 @@ package core
 import (
 	"RajaBot/config"
 	"RajaBot/database"
+	"RajaBot/prometheus"
 	"time"
 
 	"github.com/FDeghy/RajaGo/raja"
@@ -26,6 +27,7 @@ func fetchWorker(wk Work, q chan struct{}, query raja.Query, opt *raja.GetTrainL
 			ticker.Stop()
 			mutex.Lock()
 			delete(workers, wk)
+			prometheus.SetFetchWorkersCount(len(workers))
 			mutex.Unlock()
 			return
 		}
@@ -38,7 +40,7 @@ func procWorker(q chan struct{}) {
 		select {
 		case data = <-res:
 			trWRs := database.GetActiveTrainWRsByInfo(data.Work.Day, data.Work.Src, data.Work.Dst)
-			if len(*trWRs) == 0 {
+			if len(trWRs) == 0 {
 				mutex.RLock()
 				close(workers[data.Work])
 				mutex.RUnlock()
@@ -46,18 +48,18 @@ func procWorker(q chan struct{}) {
 			}
 			for _, tr := range data.TrainList.Trains {
 				trExitTime, _ := time.ParseInLocation("2006-01-02T15:04:05", tr.ExitDateTime, ptime.Iran())
+				trWR := database.GetActiveTrainWRsByTrainId(tr.RowID)
 				if time.Now().Unix() >= trExitTime.Unix() {
-					expireWork(tr.RowID)
+					expireWork(trWR)
 					continue
 				}
 				if tr.Counting > 0 {
-					trWR := database.GetActiveTrainWRsByTrainId(tr.RowID)
-					if len(*trWR) == 0 {
+					if len(trWR) == 0 {
 						continue
 					}
-					for _, trWRData := range *trWR {
+					for _, trWRData := range trWR {
 						// shayad ham go sendAlert
-						sendAlert(trWRData, tr)
+						sendAlert(*trWRData, tr)
 					}
 				}
 			}

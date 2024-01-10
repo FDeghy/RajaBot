@@ -3,6 +3,7 @@ package core
 import (
 	"RajaBot/config"
 	"RajaBot/database"
+	"RajaBot/prometheus"
 	"net/http"
 	"time"
 
@@ -50,6 +51,7 @@ func HandleGoFetch(tr *database.TrainWR) error {
 	go fetchWorker(wk, quit, query, opt)
 	mutex.Lock()
 	workers[wk] = quit
+	prometheus.SetFetchWorkersCount(len(workers))
 	mutex.Unlock()
 	return nil
 }

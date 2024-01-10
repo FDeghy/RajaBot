@@ -1,6 +1,7 @@
 package core
 
 import (
+	"RajaBot/config"
 	"errors"
 	"sync"
 
@@ -9,12 +10,15 @@ import (
 )
 
 var (
-	workers       map[Work]chan struct{}
-	mutex         *sync.RWMutex
-	res           chan *TrainData
-	Bot           *gotgbot.Bot
-	stations      *raja.Stations
-	userTimeCache map[userCache]int64
+	Bot      *gotgbot.Bot
+	stations *raja.Stations
+)
+
+var (
+	mutex         = &sync.RWMutex{}
+	workers       = make(map[Work]chan struct{}) //fetchWorkers
+	userTimeCache = make(map[userCache]int64)
+	res           = make(chan *TrainData, config.Cfg.Raja.Buffer)
 )
 
 var (

@@ -5,6 +5,7 @@ import (
 	"RajaBot/config"
 	"RajaBot/core"
 	"RajaBot/database"
+	"RajaBot/prometheus"
 	"log"
 )
 
@@ -22,6 +23,11 @@ func main() {
 	err = core.StartCore()
 	if err != nil {
 		log.Fatalln("failed to start core.")
+	}
+
+	err = prometheus.StartProm()
+	if err != nil {
+		log.Fatalf("failed to start prometheus.\nerror: %v\n", err)
 	}
 
 	err = bot.StartBot()

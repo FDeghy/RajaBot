@@ -24,3 +24,7 @@ alert_every = 60
 buffer = 50
 # procWorker
 worker = 1
+
+
+[PROMETHEUS]
+address_bind = ":2112"
