@@ -53,17 +53,6 @@ func UpdateTgUser(user *TgUser) {
 	mutex.Unlock()
 }
 
-func GetTrainWR(userId int64, day int64, trainId int, src int, dst int) *TrainWR {
-	mutex.RLock()
-	tr := &TrainWR{}
-	SESSION.Where("user_id = ? AND train_id = ? AND day = ? AND src = ? AND dst = ?", userId, trainId, day, src, dst).Take(tr)
-	mutex.RUnlock()
-	if tr.UserID != userId {
-		return nil
-	}
-	return tr
-}
-
 // by TWRID
 func GetTrainWRByTid(tid uint64) *TrainWR {
 	mutex.RLock()
@@ -76,20 +65,22 @@ func GetTrainWRByTid(tid uint64) *TrainWR {
 	return tr
 }
 
-func GetActiveTrainWRs(id int64) []*TrainWR {
+func GetActiveTrainWRs(userId int64) []*TrainWR {
 	mutex.RLock()
 	tr := []*TrainWR{}
-	SESSION.Where("user_id = ? AND is_done = ?", id, false).Find(&tr)
+	SESSION.Where("user_id = ? AND is_done = ?", userId, false).Find(&tr)
 	mutex.RUnlock()
 	return tr
 }
 
-func GetActiveTrainWRsByTrainId(train_id int) []*TrainWR {
-	mutex.RLock()
-	tr := []*TrainWR{}
-	SESSION.Where("train_id = ? AND is_done = ?", train_id, false).Find(&tr)
-	mutex.RUnlock()
-	return tr
+func FilterTrainWRsByTrainId(trainId int, trWRs []*TrainWR) []*TrainWR {
+	tempTrWRs := []*TrainWR{}
+	for _, tr := range trWRs {
+		if tr.TrainId == trainId {
+			tempTrWRs = append(tempTrWRs, tr)
+		}
+	}
+	return tempTrWRs
 }
 
 func GetActiveTrainWRsByInfo(day int64, src int, dst int) []*TrainWR {
@@ -103,7 +94,7 @@ func GetActiveTrainWRsByInfo(day int64, src int, dst int) []*TrainWR {
 func GetAllActiveTrainWRs() []*TrainWR {
 	mutex.RLock()
 	tr := []*TrainWR{}
-	SESSION.Where("is_done = ? AND train_id != ?", false, 0).Find(&tr)
+	SESSION.Where("train_id != ? AND is_done = ?", 0, false).Find(&tr)
 	mutex.RUnlock()
 	return tr
 }
