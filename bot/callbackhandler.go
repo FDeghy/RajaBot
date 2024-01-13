@@ -77,6 +77,11 @@ func _srcCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
+	if user.State != "normal" {
+		b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
+		b.SendMessage(ctx.EffectiveChat.Id, StateErr, nil)
+		return nil
+	}
 	if checkLimit(*user) {
 		b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
 		b.SendMessage(ctx.EffectiveChat.Id, LimitReached, nil)
@@ -124,6 +129,7 @@ func _dstCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	if !strings.HasPrefix(user.State, "src-") {
+		b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
 		b.SendMessage(ctx.EffectiveChat.Id, StateErr, nil)
 		return nil
 	}

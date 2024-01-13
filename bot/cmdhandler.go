@@ -73,11 +73,14 @@ func _cancel(b *gotgbot.Bot, ctx *ext.Context) error {
 	tid, err := strconv.ParseUint(d[len(d)-1], 10, 64)
 	if err != nil {
 		b.SendMessage(ctx.EffectiveChat.Id, AnError, nil)
+		return nil
 	}
 	train := database.GetTrainWRByTid(tid)
-	if train != nil {
-		database.DeleteTrainWR(train)
+	if train == nil {
+		b.SendMessage(ctx.EffectiveChat.Id, AnError, nil)
+		return nil
 	}
+	database.DeleteTrainWR(train)
 
 	user.State = "normal"
 	database.UpdateTgUser(user)
