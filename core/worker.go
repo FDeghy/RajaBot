@@ -49,14 +49,14 @@ func procWorker(q chan struct{}) {
 			for _, tr := range data.TrainList.Trains {
 				trExitTime, _ := time.ParseInLocation("2006-01-02T15:04:05", tr.ExitDateTime, ptime.Iran())
 				trWR := database.FilterTrainWRsByTrainId(tr.RowID, trWRs)
+				if len(trWR) == 0 {
+					continue
+				}
 				if time.Now().Unix() >= trExitTime.Unix() {
 					expireWork(trWR)
 					continue
 				}
 				if tr.Counting > 0 {
-					if len(trWR) == 0 {
-						continue
-					}
 					for _, trWRData := range trWR {
 						// shayad ham go sendAlert
 						sendAlert(*trWRData, tr)
