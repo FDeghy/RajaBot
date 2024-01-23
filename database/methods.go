@@ -11,3 +11,11 @@ func NewSubscription(userId int64) *Subscription {
 		RegisteryDate:  time.Now().Unix(),
 	}
 }
+
+func NewTgUser(userId int64) *TgUser {
+	return &TgUser{
+		UserID: userId,
+		IsVip:  false,
+		State:  "normal",
+	}
+}

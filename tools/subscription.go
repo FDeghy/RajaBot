@@ -38,17 +38,20 @@ func CreateSubStatus(sub database.Subscription) (string, *gotgbot.InlineKeyboard
 		}
 	}
 
+	sub.IsEnabled = false
 	status := Disabled
-	if sub.IsEnabled {
+	if sub.ExpirationDate > time.Now().Unix() {
+		sub.IsEnabled = true
 		status = Enabled
 	}
+	database.UpdateSubscription(&sub)
 	registeryDate := Unkown
 	if sub.RegisteryDate != 0 {
 		registeryDate = ptime.Unix(sub.RegisteryDate, 0).Format(TimeFormat)
 	}
 	expirationDate := Disabled
 	if sub.ExpirationDate != 0 {
-		expirationDate = ptime.Unix(sub.RegisteryDate, 0).Format(TimeFormat)
+		expirationDate = ptime.Unix(sub.ExpirationDate, 0).Format(TimeFormat)
 	}
 
 	return fmt.Sprintf(

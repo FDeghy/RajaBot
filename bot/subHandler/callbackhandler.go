@@ -4,6 +4,7 @@ import (
 	"RajaBot/config"
 	"RajaBot/database"
 	"RajaBot/tools"
+	"time"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
@@ -25,7 +26,10 @@ func _freetrial(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	sub.ExpirationDate = ptime.Now().AddDate(0, 0, config.Cfg.Bot.TrialDays).Unix()
+	if sub.ExpirationDate == 0 {
+		sub.ExpirationDate = time.Now().Unix()
+	}
+	sub.ExpirationDate = ptime.Unix(sub.ExpirationDate, 0).AddDate(0, 0, config.Cfg.Bot.TrialDays).Unix()
 	sub.IsTrial = true
 	sub.IsEnabled = true
 	database.UpdateSubscription(sub)

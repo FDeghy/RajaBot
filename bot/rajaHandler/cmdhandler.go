@@ -13,12 +13,14 @@ import (
 func _start(b *gotgbot.Bot, ctx *ext.Context) error {
 	user := database.GetTgUser(ctx.EffectiveSender.Id())
 	if user == nil {
-		user = &database.TgUser{
-			UserID: ctx.EffectiveSender.Id(),
-			IsVip:  false,
-			State:  "normal",
-		}
+		user = database.NewTgUser(ctx.EffectiveSender.Id())
 		database.SaveTgUser(user)
+	}
+
+	sub := database.GetSubscription(ctx.EffectiveSender.Id())
+	if sub == nil {
+		sub = database.NewSubscription(user.UserID)
+		database.SaveSubscription(sub)
 	}
 
 	b.SendMessage(ctx.EffectiveChat.Id, StartMsg, nil)
@@ -41,7 +43,22 @@ func _new(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	if !tools.CheckHaveSubscription(user.UserID) {
-		b.SendMessage(ctx.EffectiveChat.Id, NoHaveSub, nil)
+		sub := database.GetSubscription(ctx.EffectiveUser.Id)
+		if sub == nil {
+			sub = database.NewSubscription(user.UserID)
+			database.SaveSubscription(sub)
+		}
+
+		text, markup := tools.CreateSubStatus(*sub)
+
+		b.SendMessage(
+			ctx.EffectiveChat.Id,
+			text,
+			&gotgbot.SendMessageOpts{
+				ReplyToMessageId: ctx.EffectiveMessage.MessageId,
+				ReplyMarkup:      markup,
+			},
+		)
 		return nil
 	}
 
