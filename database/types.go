@@ -16,3 +16,11 @@ type TrainWR struct {
 	Dst     int    `json:"dst"`
 	IsDone  bool   `json:"is_done"`
 }
+
+type Subscription struct {
+	UserID         int64 `json:"user_id" gorm:"primaryKey"`
+	IsTrial        bool  `json:"is_trial"`
+	ExpirationDate int64 `json:"expiration_date"`
+	RegisteryDate  int64 `json:"registery_date"`
+	IsEnabled      bool  `json:"is_enabled"`
+}

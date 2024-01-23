@@ -1,4 +1,4 @@
-package bot
+package rajaHandler
 
 const (
 	StartMsg = "خوش آمدید!" + "\n" +
@@ -15,12 +15,12 @@ const (
 	PreviousPage     = "➡️ صفحه قبل"
 	NextMonth        = "ماه بعد ⬅️"
 	PreviousMonth    = "➡️ ماه قبل"
-	AnError          = "خطای ناشناخته با ادمین تماس بگیرید"
 	PageN            = "صفحه %d"
+	FavSign          = " " + "⭐️"
+	AnError          = "خطای ناشناخته با ادمین تماس بگیرید"
 	DayMsg           = "تاریخ را انتخاب کنید" + "\n" + "MMM yyyy"
 	TimeFormat       = "E dd MMM yyyy"
 	TrainSelMsg      = TimeFormat
-	FavSign          = " " + "⭐️"
 	StateErr         = "خطای مرحله! لطفا فعالیت قبلی را کامل کنید یا آن را کنسل کنید"
 	TrainButtonText  = "%s - %s - %s تومان"
 	GetTrainsInfoMsg = "در حال دریافت لیست قطار ها"
@@ -35,6 +35,8 @@ const (
 	TrainNotFound    = "قطار پیدا نشد! (ممکن است باگ ساعتی رجا باشد، دقایقی دیگر مجدد تست کنید)"
 	EmptyTrainWR     = "درخواست فعالی ندارید\\."
 	ListReqs         = "لیست درخواست ها:"
-	CancButtonTxt    = "❌ حذف شماره \"%v\""
+	CancButtonTxt    = "❌ حذف درخواست (%v)"
 	CancOkAlert      = "با موفقیت حذف شد"
+	NoHaveSub        = "اشتراک فعال ندارید" + "\n" +
+		"برای مشاهده وضعیت اشتراک دستور /sub را ارسال کنید"
 )

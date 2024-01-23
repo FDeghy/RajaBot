@@ -1,7 +1,8 @@
-package bot
+package rajaHandler
 
 import (
 	"RajaBot/database"
+	"RajaBot/tools"
 	"strconv"
 	"strings"
 
@@ -35,8 +36,12 @@ func _new(b *gotgbot.Bot, ctx *ext.Context) error {
 		b.SendMessage(ctx.EffectiveChat.Id, StateErr, nil)
 		return nil
 	}
-	if checkLimit(*user) {
+	if tools.CheckReachLimit(*user) {
 		b.SendMessage(ctx.EffectiveChat.Id, LimitReached, nil)
+		return nil
+	}
+	if !tools.CheckHaveSubscription(user.UserID) {
+		b.SendMessage(ctx.EffectiveChat.Id, NoHaveSub, nil)
 		return nil
 	}
 

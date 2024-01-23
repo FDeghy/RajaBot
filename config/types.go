@@ -10,6 +10,7 @@ type Config struct {
 		Admins                 []int64  `toml:"admins"`
 		UserLimit              int      `toml:"user_limit"`
 		VipLimit               int      `toml:"vip_limit"`
+		TrialDays              int      `toml:"trial_days"`
 	} `toml:"BOT"`
 	Database struct {
 		Name string `toml:"name"`

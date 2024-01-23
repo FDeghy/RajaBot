@@ -1,8 +1,9 @@
-package bot
+package rajaHandler
 
 import (
 	"RajaBot/core"
 	"RajaBot/database"
+	"RajaBot/tools"
 	"fmt"
 	"strconv"
 	"strings"
@@ -82,9 +83,14 @@ func _srcCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		b.SendMessage(ctx.EffectiveChat.Id, StateErr, nil)
 		return nil
 	}
-	if checkLimit(*user) {
+	if tools.CheckReachLimit(*user) {
 		b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
 		b.SendMessage(ctx.EffectiveChat.Id, LimitReached, nil)
+		return nil
+	}
+	if !tools.CheckHaveSubscription(user.UserID) {
+		b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
+		b.SendMessage(ctx.EffectiveChat.Id, NoHaveSub, nil)
 		return nil
 	}
 
@@ -265,7 +271,15 @@ func _trCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
+	user.State = "normal"
+	database.UpdateTgUser(user)
+
 	b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
+
+	if !tools.CheckHaveSubscription(user.UserID) {
+		b.SendMessage(ctx.EffectiveChat.Id, NoHaveSub, nil)
+		return nil
+	}
 
 	//send to core
 	err = core.HandleGoFetch(train)
@@ -277,8 +291,6 @@ func _trCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	train.TrainId = trainId
 	train.Hour = data[1]
 	database.UpdateTrainWR(train)
-	user.State = "normal"
-	database.UpdateTgUser(user)
 	b.SendMessage(ctx.EffectiveChat.Id, successfulCreate, &gotgbot.SendMessageOpts{
 		ReplyMarkup: &gotgbot.InlineKeyboardMarkup{
 			InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{

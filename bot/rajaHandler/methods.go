@@ -1,8 +1,9 @@
-package bot
+package rajaHandler
 
 import (
 	"RajaBot/config"
 	"RajaBot/database"
+	"RajaBot/tools"
 	"errors"
 	"fmt"
 	"net/http"
@@ -74,7 +75,7 @@ func createTaqvimMarkup(sal int, mah int) (*gotgbot.InlineKeyboardMarkup, error)
 	now := ptime.Now()
 	pad := int(curMah.Weekday())
 	row := []gotgbot.InlineKeyboardButton{}
-	appendEmptyButton(&row, pad)
+	tools.AppendEmptyButton(&row, pad)
 	for i := 1; i <= lastDayofMonth; i++ {
 		day := gotgbot.InlineKeyboardButton{
 			Text:         fmt.Sprintf("%d", i),
@@ -93,7 +94,7 @@ func createTaqvimMarkup(sal int, mah int) (*gotgbot.InlineKeyboardMarkup, error)
 	}
 	curMah = ptime.Date(sal, ptime.Month(mah), 1, 0, 0, 0, 0, ptime.Iran())
 	pad = (7 - ((pad + lastDayofMonth) % 7)) % 7
-	appendEmptyButton(&row, pad)
+	tools.AppendEmptyButton(&row, pad)
 	if len(row) != 0 {
 		slices.Reverse(row)
 		markup.InlineKeyboard = append(markup.InlineKeyboard, row)
@@ -168,7 +169,7 @@ func createTrainListMarkup(tr database.TrainWR) (*gotgbot.InlineKeyboardMarkup, 
 		}
 		markup.InlineKeyboard = append(markup.InlineKeyboard, []gotgbot.InlineKeyboardButton{
 			{
-				Text:         fmt.Sprintf(TrainButtonText, train.ExitTime, strings.TrimSpace(train.WagonName), numToMoney(int(train.Cost/10))),
+				Text:         fmt.Sprintf(TrainButtonText, train.ExitTime, strings.TrimSpace(train.WagonName), tools.NumToMoney(int(train.Cost/10))),
 				CallbackData: callbackData,
 			},
 		})

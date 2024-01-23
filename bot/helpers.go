@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"RajaBot/bot/rajaHandler"
 	"RajaBot/config"
 	"RajaBot/core"
 	"errors"
@@ -71,6 +72,6 @@ func loadStations() error {
 	if err != nil {
 		return err
 	}
-	Stations = sts
+	rajaHandler.Stations = sts
 	return nil
 }

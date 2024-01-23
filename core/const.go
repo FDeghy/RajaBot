@@ -8,4 +8,13 @@ const (
 	RajaSearchDateFmt = "yyyyMMdd"
 	RajaSearchURL     = "https://www.raja.ir/search?adult=1&child=0&infant=0&movetype=1&ischarter=false&fs=%v&ts=%v&godate=%v&tickettype=Family&returndate=&numberpassenger=1&mode=Train"
 	RajaSearchButTxt  = "باز کردن درخواست در سایت رجا"
+
+	SubscriptionStatusMsg = "وضعیت اشتراک شما: %v" + "\n" +
+		"تاریخ عضویت: %v" + "\n" +
+		"تاریخ انقضا: %v" + "\n" +
+		"محدودیت درخواست های همزمان: %v" + "\n"
+	Enabled    = "فعال"
+	Disabled   = "غیرفعال"
+	Unkown     = "نامشخص"
+	TimeFormat = "dd MMM yyyy"
 )

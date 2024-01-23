@@ -19,6 +19,7 @@ func StartDatabase() error {
 	err = SESSION.AutoMigrate(
 		&TgUser{},
 		&TrainWR{},
+		&Subscription{},
 	)
 	if err != nil {
 		return err
@@ -120,6 +121,41 @@ func DeleteTrainWR(tr *TrainWR) {
 	mutex.Lock()
 	tx := SESSION.Begin()
 	tx.Delete(tr)
+	tx.Commit()
+	mutex.Unlock()
+}
+
+func GetSubscription(userId int64) *Subscription {
+	mutex.RLock()
+	sub := &Subscription{}
+	SESSION.Where("user_id = ?", userId).Take(sub)
+	mutex.RUnlock()
+	if sub.UserID != userId {
+		return nil
+	}
+	return sub
+}
+
+func SaveSubscription(sub *Subscription) {
+	mutex.Lock()
+	tx := SESSION.Begin()
+	tx.Save(sub)
+	tx.Commit()
+	mutex.Unlock()
+}
+
+func UpdateSubscription(sub *Subscription) {
+	mutex.Lock()
+	tx := SESSION.Begin()
+	tx.Save(sub)
+	tx.Commit()
+	mutex.Unlock()
+}
+
+func DeleteSubscription(sub *Subscription) {
+	mutex.Lock()
+	tx := SESSION.Begin()
+	tx.Delete(sub)
 	tx.Commit()
 	mutex.Unlock()
 }
