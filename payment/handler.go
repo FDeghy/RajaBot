@@ -58,7 +58,7 @@ func handleCallback(w http.ResponseWriter, r *http.Request) {
 	database.UpdatePayment(paym)
 
 	// bot callback
-	err = tools.AddDaysSub(paym.UserID, 30)
+	_, err = tools.AddDaysSub(paym.UserID, 30)
 	if err != nil {
 		io.WriteString(w, AddSubFailed)
 		return

@@ -66,18 +66,18 @@ func CreateSubStatus(sub database.Subscription) (string, *gotgbot.InlineKeyboard
 	), markup
 }
 
-func AddDaysSub(userId int64, days int) error {
+func AddDaysSub(userId int64, days int) (*database.Subscription, error) {
 	sub := database.GetSubscription(userId)
 	if sub == nil {
-		return ErrSubNotFound
+		return sub, ErrSubNotFound
 	}
-	if sub.ExpirationDate == 0 {
+	if sub.ExpirationDate < time.Now().Unix() {
 		sub.ExpirationDate = time.Now().Unix()
 	}
 	sub.ExpirationDate = ptime.Unix(sub.ExpirationDate, 0).AddDate(0, 0, days).Unix()
 	sub.IsEnabled = true
 	database.UpdateSubscription(sub)
-	return nil
+	return sub, nil
 }
 
 func SetTrialSub(userId int64) (*database.Subscription, error) {
@@ -88,7 +88,7 @@ func SetTrialSub(userId int64) (*database.Subscription, error) {
 	if sub.IsTrial {
 		return sub, ErrAlreadyTrial
 	}
-	if sub.ExpirationDate == 0 {
+	if sub.ExpirationDate < time.Now().Unix() {
 		sub.ExpirationDate = time.Now().Unix()
 	}
 	sub.ExpirationDate = ptime.Unix(sub.ExpirationDate, 0).AddDate(0, 0, config.Cfg.Bot.TrialDays).Unix()

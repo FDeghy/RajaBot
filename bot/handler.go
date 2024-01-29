@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"RajaBot/bot/adminHandler"
 	"RajaBot/bot/rajaHandler"
 	"RajaBot/bot/subHandler"
 	"RajaBot/config"
@@ -13,6 +14,7 @@ func load(d *ext.Dispatcher) {
 	loadLimiter(d)
 	rajaHandler.Load(d)
 	subHandler.Load(d)
+	adminHandler.Load(d)
 }
 
 func loadLimiter(d *ext.Dispatcher) {
