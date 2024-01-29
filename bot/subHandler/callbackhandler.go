@@ -66,7 +66,7 @@ func _buysub(b *gotgbot.Bot, ctx *ext.Context) error {
 		}
 		return nil
 	}
-
+	b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: TransactionCreated, ShowAlert: true})
 	b.SendMessage(
 		ctx.EffectiveChat.Id,
 		GoTransaction,

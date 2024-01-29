@@ -28,3 +28,9 @@ worker = 1
 
 [PROMETHEUS]
 address_bind = ":2112"
+
+[PAYMENT]
+api_key = "zibal"
+callback_domain_port = "http://example.com"
+address_bind = ":80"
+one_month_price = 10000
