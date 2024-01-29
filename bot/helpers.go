@@ -16,7 +16,7 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 )
 
-func StartBot() error {
+func CreateBot() error {
 	httpClient := &http.Client{}
 	if config.Cfg.Bot.HttpURI != "" {
 		proxy, err := url.Parse(config.Cfg.Bot.HttpURI)
@@ -30,7 +30,7 @@ func StartBot() error {
 		}
 	}
 
-	bot, err := gotgbot.NewBot(config.Cfg.Bot.Token, &gotgbot.BotOpts{
+	b, err := gotgbot.NewBot(config.Cfg.Bot.Token, &gotgbot.BotOpts{
 		BotClient: &gotgbot.BaseBotClient{
 			Client: *httpClient,
 		},
@@ -41,16 +41,21 @@ func StartBot() error {
 	if err != nil {
 		return errors.New("failed to create bot client")
 	}
-
+	bot = b
 	// load stations
 	err = loadStations()
 	if err != nil {
 		return errors.New("failed to load stations")
 	}
 
-	dispatcher := ext.NewDispatcher(&ext.DispatcherOpts{})
-	updater := ext.NewUpdater(dispatcher, nil)
-	err = updater.StartPolling(bot, &ext.PollingOpts{
+	dispatcher = ext.NewDispatcher(&ext.DispatcherOpts{})
+	updater = ext.NewUpdater(dispatcher, nil)
+
+	return nil
+}
+
+func StartBot() error {
+	err := updater.StartPolling(bot, &ext.PollingOpts{
 		DropPendingUpdates: true,
 	})
 	if err != nil {
