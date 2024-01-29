@@ -52,7 +52,7 @@ func handleCallback(w http.ResponseWriter, r *http.Request) {
 	// transaction successful
 	paym.IsDone = true
 	paym.StatusCode = verifyData.Status
-	paym.ShaparakRefId = fmt.Sprint(verifyData.RefNumber)
+	paym.ShaparakRefId = verifyData.RefNumber
 	paym.CardNumber = verifyData.CardNumber
 	paym.OrderDate = verifyData.PaidAt
 	database.UpdatePayment(paym)
