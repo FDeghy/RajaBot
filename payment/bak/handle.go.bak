@@ -1,0 +1,56 @@
+package payment
+
+import (
+	"RajaBot/database"
+	"io"
+	"log"
+	"net/http"
+
+	"github.com/gorilla/schema"
+)
+
+func handleCallback(w http.ResponseWriter, r *http.Request) {
+	decoder := schema.NewDecoder()
+	cbData := &CallbackParams{}
+
+	err := decoder.Decode(cbData, r.URL.Query())
+	if err != nil {
+		log.Println("Payment -> Error in GET parameters: ", err)
+	}
+	if cbData.OrderID == "" || cbData.TransID == "" {
+		log.Println("Payment -> Error in callback data")
+		io.WriteString(w, BadCbMsg)
+		return
+	}
+
+	paym := database.GetPayment(cbData.OrderID)
+	if paym == nil {
+		io.WriteString(w, OrderNotFound)
+		return
+	}
+
+	// verify
+	verifyData, ok, err := verifyTransaction(cbData.TransID, paym.Price)
+	if !ok {
+		if err != nil {
+			log.Printf("Payment -> verify error: %v", err)
+		}
+		paym.IsDone = true
+		paym.StatusCode = verifyData.Code
+		database.UpdatePayment(paym)
+		io.WriteString(w, OrderFailed)
+		return
+	}
+
+	// successful
+	paym.IsDone = true
+	paym.StatusCode = verifyData.Code
+	paym.ShaparakRefId = verifyData.ShaparakRefId
+	paym.CardNumber = verifyData.CardHolder
+	paym.CustomerPhone = verifyData.CustomerPhone
+	paym.OrderDate = verifyData.CreatedAt
+	database.UpdatePayment(paym)
+	io.WriteString(w, OrderSuccessful)
+
+	// bot callback
+}

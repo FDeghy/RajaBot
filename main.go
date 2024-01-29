@@ -5,6 +5,7 @@ import (
 	"RajaBot/config"
 	"RajaBot/core"
 	"RajaBot/database"
+	"RajaBot/payment"
 	"RajaBot/prometheus"
 	"log"
 )
@@ -28,6 +29,11 @@ func main() {
 	err = prometheus.StartProm()
 	if err != nil {
 		log.Fatalf("failed to start prometheus.\nerror: %v\n", err)
+	}
+
+	err = payment.StartPaymentServer()
+	if err != nil {
+		log.Fatalf("failed to start payment server.\nerror: %v\n", err)
 	}
 
 	err = bot.StartBot()

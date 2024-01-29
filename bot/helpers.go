@@ -4,6 +4,7 @@ import (
 	"RajaBot/bot/rajaHandler"
 	"RajaBot/config"
 	"RajaBot/core"
+	"RajaBot/payment"
 	"errors"
 	"log"
 	"net/http"
@@ -62,6 +63,8 @@ func StartBot() error {
 	load(dispatcher)
 	// set Bot in core
 	core.Bot = bot
+	// set Bot in payment
+	payment.Bot = bot
 
 	updater.Idle()
 	return nil

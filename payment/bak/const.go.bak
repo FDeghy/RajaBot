@@ -1,0 +1,13 @@
+package payment
+
+const (
+	CreateTokenURL = "https://nextpay.org/nx/gateway/token"
+	BankURL        = "https://nextpay.org/nx/gateway/payment/%v"
+	VerifyURL      = "https://nextpay.org/nx/gateway/payment/%v"
+	BadCbMsg       = "خطا در خواندن اطلاعات بازگشتی از درگاه پرداخت."
+	OrderNotFound  = "پرداخت یافت نشد."
+	OrderFailed    = "پرداخت انجام نشد!" + "\n" +
+		"در صورت کسر مبلغ تا 72 ساعت آینده بازگشت میخورد." + "\n" +
+		"برای کسب اطلاعات بیشتر با ادمین در تماس باشید."
+	OrderSuccessful = "پرداخت انجام شد."
+)

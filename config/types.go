@@ -25,4 +25,10 @@ type Config struct {
 	Prometheus struct {
 		AddressBind string `toml:"address_bind"`
 	} `toml:"PROMETHEUS"`
+	Payment struct {
+		ApiKey         string `toml:"api_key"`
+		CallbackDomain string `toml:"callback_domain_port"`
+		AddressBind    string `toml:"address_bind"`
+		OneMonthPrice  uint   `toml:"one_month_price"`
+	} `toml:"PAYMENT"`
 }

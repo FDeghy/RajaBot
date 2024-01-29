@@ -1,0 +1,23 @@
+package payment
+
+type TokenResp struct {
+	Code    int    `json:"code"`
+	TransId string `json:"trans_id"`
+}
+
+type CallbackParams struct {
+	TransID string `schema:"trans_id"`
+	OrderID string `schema:"order_id"`
+	Price   uint   `schema:"amount"`
+}
+
+type VerifyResp struct {
+	Code          int    `json:"code"`
+	Amount        uint   `json:"amount"`
+	OrderId       string `json:"order_id"`
+	CardHolder    string `json:"card_holder"`
+	CustomerPhone string `json:"customer_phone"`
+	ShaparakRefId string `json:"Shaparak_Ref_Id"`
+	Custom        string `json:"custom"`
+	CreatedAt     string `json:"created_at"`
+}

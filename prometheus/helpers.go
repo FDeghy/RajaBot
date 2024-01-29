@@ -10,15 +10,16 @@ import (
 )
 
 func StartProm() error {
-	http.Handle("/metrics", promhttp.Handler())
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
 	go func() {
-		err := http.ListenAndServe(config.Cfg.Prometheus.AddressBind, nil)
+		err := http.ListenAndServe(config.Cfg.Prometheus.AddressBind, mux)
 		errChan <- err
 	}()
 	select {
 	case err := <-errChan:
 		return err
-	case <-time.After(5 * time.Second):
+	case <-time.After(3 * time.Second):
 		break
 	}
 	log.Println("Prometheus -> metrics http server started.")

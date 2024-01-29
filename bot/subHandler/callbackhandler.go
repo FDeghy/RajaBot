@@ -3,36 +3,32 @@ package subHandler
 import (
 	"RajaBot/config"
 	"RajaBot/database"
+	"RajaBot/payment"
 	"RajaBot/tools"
-	"time"
+	"errors"
+	"fmt"
+	"log"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
-	ptime "github.com/yaa110/go-persian-calendar"
 )
 
-func _buysub(b *gotgbot.Bot, ctx *ext.Context) error {
-	return nil
-}
-
 func _freetrial(b *gotgbot.Bot, ctx *ext.Context) error {
-	sub := database.GetSubscription(ctx.EffectiveUser.Id)
-	if sub == nil {
+	user := database.GetTgUser(ctx.EffectiveSender.Id())
+	if user == nil {
 		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
 		return nil
 	}
-	if sub.IsTrial {
+
+	sub, err := tools.SetTrialSub(user.UserID)
+	if errors.Is(err, tools.ErrSubNotFound) {
+		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+		return nil
+	}
+	if errors.Is(err, tools.ErrAlreadyTrial) {
 		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AlreadyTrial, ShowAlert: true})
 		return nil
 	}
-
-	if sub.ExpirationDate == 0 {
-		sub.ExpirationDate = time.Now().Unix()
-	}
-	sub.ExpirationDate = ptime.Unix(sub.ExpirationDate, 0).AddDate(0, 0, config.Cfg.Bot.TrialDays).Unix()
-	sub.IsTrial = true
-	sub.IsEnabled = true
-	database.UpdateSubscription(sub)
 
 	b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: EnabledFreeTrial, ShowAlert: true})
 	text, markup := tools.CreateSubStatus(*sub)
@@ -43,6 +39,46 @@ func _freetrial(b *gotgbot.Bot, ctx *ext.Context) error {
 			ChatId:      ctx.EffectiveChat.Id,
 			MessageId:   ctx.EffectiveMessage.MessageId,
 			ReplyMarkup: *markup,
+		},
+	)
+	return nil
+}
+
+func _buysub(b *gotgbot.Bot, ctx *ext.Context) error {
+	user := database.GetTgUser(ctx.EffectiveSender.Id())
+	if user == nil {
+		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+		return nil
+	}
+	sub := database.GetSubscription(user.UserID)
+	if sub == nil {
+		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+		return nil
+	}
+
+	paym, err := payment.NewTransaction(user, config.Cfg.Payment.OneMonthPrice)
+	if err != nil {
+		if errors.Is(err, payment.ErrUncompletedTransactionFound) {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: UncompletedTransaction, ShowAlert: true})
+		} else if errors.Is(err, payment.ErrBadCode) {
+			log.Printf("Bot -> new transaction error: %v", err)
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+		}
+		return nil
+	}
+
+	b.SendMessage(
+		ctx.EffectiveChat.Id,
+		GoTransaction,
+		&gotgbot.SendMessageOpts{
+			ReplyMarkup: &gotgbot.InlineKeyboardMarkup{
+				InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
+					{
+						Text: fmt.Sprintf(OneMonthBtn, tools.NumToMoney(int(config.Cfg.Payment.OneMonthPrice))),
+						Url:  payment.CreateBankLink(paym.TransID),
+					},
+				}},
+			},
 		},
 	)
 	return nil

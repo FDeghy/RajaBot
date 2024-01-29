@@ -20,6 +20,7 @@ func StartDatabase() error {
 		&TgUser{},
 		&TrainWR{},
 		&Subscription{},
+		&Payment{},
 	)
 	if err != nil {
 		return err
@@ -156,6 +157,49 @@ func DeleteSubscription(sub *Subscription) {
 	mutex.Lock()
 	tx := SESSION.Begin()
 	tx.Delete(sub)
+	tx.Commit()
+	mutex.Unlock()
+}
+
+func GetPayment(orderId string) *Payment {
+	mutex.RLock()
+	paym := &Payment{}
+	SESSION.Where("order_id = ?", orderId).Take(paym)
+	mutex.RUnlock()
+	if paym.OrderID != orderId {
+		return nil
+	}
+	return paym
+}
+
+func GetUncompletedPayment(userId int64) []*Payment {
+	mutex.RLock()
+	payms := []*Payment{}
+	SESSION.Where("user_id = ? AND is_done = ?", userId, false).Find(&payms)
+	mutex.RUnlock()
+	return payms
+}
+
+func SavePayment(paym *Payment) {
+	mutex.Lock()
+	tx := SESSION.Begin()
+	tx.Save(paym)
+	tx.Commit()
+	mutex.Unlock()
+}
+
+func UpdatePayment(paym *Payment) {
+	mutex.Lock()
+	tx := SESSION.Begin()
+	tx.Save(paym)
+	tx.Commit()
+	mutex.Unlock()
+}
+
+func DeletePayment(paym *Payment) {
+	mutex.Lock()
+	tx := SESSION.Begin()
+	tx.Delete(paym)
 	tx.Commit()
 	mutex.Unlock()
 }

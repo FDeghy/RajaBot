@@ -1,0 +1,117 @@
+package payment
+
+import (
+	"RajaBot/config"
+	"RajaBot/database"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+)
+
+func StartPaymentServer() error {
+	errChan := make(chan error)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/verify", handleCallback)
+	go func() {
+		err := http.ListenAndServe(config.Cfg.Payment.AddressBind, mux)
+		errChan <- err
+	}()
+	select {
+	case err := <-errChan:
+		return err
+	case <-time.After(3 * time.Second):
+		break
+	}
+	log.Println("Payment -> web callback server started.")
+	return nil
+}
+
+func NewTransaction(user *database.TgUser, price uint) (*database.Payment, error) {
+	uncomp := database.GetUncompletedPayment(user.UserID)
+	if len(uncomp) > 0 {
+		return nil, ErrUncompletedTransactionFound
+	}
+
+	orderId := fmt.Sprintf("%v_%v", user.UserID, time.Now().Unix())
+
+	data := &url.Values{}
+	data.Set("api_key", config.Cfg.Payment.ApiKey)
+	data.Set("order_id", orderId)
+	data.Set("amount", fmt.Sprintf("%v", price))
+	data.Set("callback_uri", config.Cfg.Payment.CallbackDomain+"/verify")
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", CreateTokenURL, strings.NewReader(data.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	jsonData := &TokenResp{}
+	err = json.Unmarshal(body, jsonData)
+	if err != nil {
+		return nil, err
+	}
+	//fmt.Printf("%#v\n", jsonData)
+	if jsonData.Code != -1 {
+		return nil, ErrBadCode
+	}
+	paym := &database.Payment{
+		UserID:  user.UserID,
+		OrderID: orderId,
+		Price:   price,
+		TransID: jsonData.TransId,
+		IsDone:  false,
+	}
+	database.SavePayment(paym)
+
+	return paym, err
+}
+
+func CreateBankLink(transId string) string {
+	return fmt.Sprintf(BankURL, transId)
+}
+
+func verifyTransaction(transId string, amount uint) (*VerifyResp, bool, error) {
+	jsonData := &VerifyResp{}
+	data := &url.Values{}
+	data.Set("api_key", config.Cfg.Payment.ApiKey)
+	data.Set("trans_id", transId)
+	data.Set("amount", fmt.Sprintf("%v", amount))
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", VerifyURL, strings.NewReader(data.Encode()))
+	if err != nil {
+		return jsonData, false, err
+	}
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return jsonData, false, err
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	err = json.Unmarshal(body, jsonData)
+	if err != nil {
+		return jsonData, false, err
+	}
+
+	if jsonData.Code == 0 {
+		return jsonData, true, nil
+	}
+	return jsonData, false, nil
+}
