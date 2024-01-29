@@ -51,6 +51,11 @@ func CreateBot() error {
 	dispatcher = ext.NewDispatcher(&ext.DispatcherOpts{})
 	updater = ext.NewUpdater(dispatcher, nil)
 
+	// set Bot in core
+	core.Bot = bot
+	// set Bot in payment
+	payment.Bot = bot
+
 	return nil
 }
 
@@ -66,10 +71,6 @@ func StartBot() error {
 
 	// load handlers
 	load(dispatcher)
-	// set Bot in core
-	core.Bot = bot
-	// set Bot in payment
-	payment.Bot = bot
 
 	updater.Idle()
 	return nil
