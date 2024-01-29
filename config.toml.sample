@@ -18,9 +18,8 @@ name = "rajabot"
 # sec
 timeout = 15
 check_every = 20
-# must be less than check
 alert_every = 60
-# chan buffer size
+# trains data chan buffer size
 buffer = 50
 # procWorker
 worker = 1
