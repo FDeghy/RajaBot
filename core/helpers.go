@@ -45,7 +45,7 @@ func StartCore() error {
 			database.SaveSubscription(sub)
 		}
 
-		text, markup := tools.CreateSubStatus(*sub)
+		text, markup := tools.CreateSubStatus(sub)
 
 		Bot.SendMessage(
 			i,

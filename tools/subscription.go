@@ -24,7 +24,7 @@ func CheckHaveSubscription(userId int64) bool {
 	return sub.IsEnabled
 }
 
-func CreateSubStatus(sub database.Subscription) (string, *gotgbot.InlineKeyboardMarkup) {
+func CreateSubStatus(sub *database.Subscription) (string, *gotgbot.InlineKeyboardMarkup) {
 	markup := &gotgbot.InlineKeyboardMarkup{}
 	if sub.IsTrial {
 		markup.InlineKeyboard = [][]gotgbot.InlineKeyboardButton{
@@ -36,6 +36,8 @@ func CreateSubStatus(sub database.Subscription) (string, *gotgbot.InlineKeyboard
 		markup.InlineKeyboard = [][]gotgbot.InlineKeyboardButton{
 			{
 				{Text: BuySub, CallbackData: "buysub"},
+			},
+			{
 				{Text: FreeTrial, CallbackData: "freetrial"},
 			},
 		}
@@ -47,7 +49,7 @@ func CreateSubStatus(sub database.Subscription) (string, *gotgbot.InlineKeyboard
 		sub.IsEnabled = true
 		status = Enabled
 	}
-	database.UpdateSubscription(&sub)
+	database.UpdateSubscription(sub)
 	registeryDate := Unkown
 	if sub.RegisteryDate != 0 {
 		registeryDate = ptime.Unix(sub.RegisteryDate, 0).Format(TimeFormat)

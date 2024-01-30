@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
@@ -31,7 +32,7 @@ func _freetrial(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: EnabledFreeTrial, ShowAlert: true})
-	text, markup := tools.CreateSubStatus(*sub)
+	text, markup := tools.CreateSubStatus(sub)
 
 	b.EditMessageText(
 		text,
@@ -60,7 +61,7 @@ func _buysub(b *gotgbot.Bot, ctx *ext.Context) error {
 	if err != nil {
 		if errors.Is(err, payment.ErrUncompletedTransactionFound) {
 			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: UncompletedTransaction, ShowAlert: true})
-		} else if errors.Is(err, payment.ErrBadCode) {
+		} else {
 			log.Printf("Bot -> new transaction error: %v", err)
 			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
 		}
@@ -72,14 +73,30 @@ func _buysub(b *gotgbot.Bot, ctx *ext.Context) error {
 		GoTransaction,
 		&gotgbot.SendMessageOpts{
 			ReplyMarkup: &gotgbot.InlineKeyboardMarkup{
-				InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
+				InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
 					{
-						Text: fmt.Sprintf(OneMonthBtn, tools.NumToMoney(int(config.Cfg.Payment.OneMonthPrice))),
-						Url:  payment.CreateBankLink(paym.TransID),
+						{
+							Text: fmt.Sprintf(OneMonthBtn, tools.NumToMoney(int(config.Cfg.Payment.OneMonthPrice))),
+							Url:  payment.CreateBankLink(paym.TransID),
+						},
 					},
-				}},
+					{
+						{
+							Text:         CancelTransactionBtn,
+							CallbackData: fmt.Sprintf("cancta-%v", paym.TransID),
+						},
+					},
+				},
 			},
 		},
 	)
+	return nil
+}
+
+func _canceltransaction(b *gotgbot.Bot, ctx *ext.Context) error {
+	transId := strings.TrimPrefix(ctx.CallbackQuery.Data, "cancta-")
+	payment.CancelTransaction(transId)
+	b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
+	b.SendMessage(ctx.EffectiveChat.Id, CancelTransactionMsg, nil)
 	return nil
 }

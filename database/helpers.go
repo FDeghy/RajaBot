@@ -172,6 +172,17 @@ func GetPayment(orderId string) *Payment {
 	return paym
 }
 
+func GetPaymentByTransId(transId string) *Payment {
+	mutex.RLock()
+	paym := &Payment{}
+	SESSION.Where("trans_id = ?", transId).Take(paym)
+	mutex.RUnlock()
+	if paym.TransID != transId {
+		return nil
+	}
+	return paym
+}
+
 func GetUncompletedPayment(userId int64) []*Payment {
 	mutex.RLock()
 	payms := []*Payment{}

@@ -114,3 +114,10 @@ func verifyTransaction(transId string) (*ResponseVerifyParams, bool, error) {
 	}
 	return resp, false, nil
 }
+
+func CancelTransaction(trainsId string) {
+	paym := database.GetPaymentByTransId(trainsId)
+	if paym != nil {
+		database.DeletePayment(paym)
+	}
+}

@@ -21,7 +21,7 @@ func _sub(b *gotgbot.Bot, ctx *ext.Context) error {
 		database.SaveSubscription(sub)
 	}
 
-	text, markup := tools.CreateSubStatus(*sub)
+	text, markup := tools.CreateSubStatus(sub)
 
 	b.SendMessage(
 		ctx.EffectiveChat.Id,

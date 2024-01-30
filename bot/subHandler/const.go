@@ -17,4 +17,6 @@ const (
 	GoTransaction          = "لطفا وی.پی.ان خود را خاموش کنید و دکمه پرداخت را بزنید"
 	OneMonthBtn            = "پرداخت - یک ماهه %v تومان"
 	TransactionCreated     = "لینک پرداخت ایجاد شد"
+	CancelTransactionBtn   = "لغو پرداخت ❌"
+	CancelTransactionMsg   = "پرداخت لغو شد"
 )

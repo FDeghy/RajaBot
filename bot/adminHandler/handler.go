@@ -6,6 +6,7 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/message"
 )
 
@@ -23,7 +24,7 @@ func Load(d *ext.Dispatcher) {
 	d.AddHandler(getsub)
 }
 
-func admin(cond func(*gotgbot.Message) bool) func(*gotgbot.Message) bool {
+func admin(cond filters.Message) filters.Message {
 	return func(msg *gotgbot.Message) bool {
 		return tools.IsAdmin(msg.From.Id) && cond(msg)
 	}
