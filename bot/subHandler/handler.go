@@ -8,9 +8,9 @@ import (
 
 func Load(d *ext.Dispatcher) {
 	sub := handlers.NewCommand("sub", _sub)
-	buysub := handlers.NewCallback(callbackquery.Equal("buysub"), _buysub)
-	freetrial := handlers.NewCallback(callbackquery.Equal("freetrial"), _freetrial)
-	canceltrial := handlers.NewCallback(callbackquery.Prefix("cancta"), _canceltransaction)
+	buysub := handlers.NewCallback(callbackquery.Equal("buysub"), _buySub)
+	freetrial := handlers.NewCallback(callbackquery.Equal("freetrial"), _freeTrial)
+	canceltrial := handlers.NewCallback(callbackquery.Prefix("cancta"), _cancelTransaction)
 
 	d.AddHandler(sub)
 	d.AddHandler(buysub)

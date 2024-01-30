@@ -14,7 +14,7 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 )
 
-func _freetrial(b *gotgbot.Bot, ctx *ext.Context) error {
+func _freeTrial(b *gotgbot.Bot, ctx *ext.Context) error {
 	user := database.GetTgUser(ctx.EffectiveSender.Id())
 	if user == nil {
 		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
@@ -45,7 +45,7 @@ func _freetrial(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func _buysub(b *gotgbot.Bot, ctx *ext.Context) error {
+func _buySub(b *gotgbot.Bot, ctx *ext.Context) error {
 	user := database.GetTgUser(ctx.EffectiveSender.Id())
 	if user == nil {
 		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
@@ -68,11 +68,12 @@ func _buysub(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: TransactionCreated, ShowAlert: true})
-	b.SendMessage(
-		ctx.EffectiveChat.Id,
+	b.EditMessageText(
 		GoTransaction,
-		&gotgbot.SendMessageOpts{
-			ReplyMarkup: &gotgbot.InlineKeyboardMarkup{
+		&gotgbot.EditMessageTextOpts{
+			ChatId:    ctx.EffectiveChat.Id,
+			MessageId: ctx.EffectiveMessage.MessageId,
+			ReplyMarkup: gotgbot.InlineKeyboardMarkup{
 				InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
 					{
 						{
@@ -90,10 +91,11 @@ func _buysub(b *gotgbot.Bot, ctx *ext.Context) error {
 			},
 		},
 	)
+
 	return nil
 }
 
-func _canceltransaction(b *gotgbot.Bot, ctx *ext.Context) error {
+func _cancelTransaction(b *gotgbot.Bot, ctx *ext.Context) error {
 	transId := strings.TrimPrefix(ctx.CallbackQuery.Data, "cancta-")
 	payment.CancelTransaction(transId)
 	b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
