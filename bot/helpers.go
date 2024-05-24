@@ -61,6 +61,8 @@ func CreateBot() error {
 	core.Bot = bot
 	// set Bot in payment
 	payment.Bot = bot
+	// set Bot in tools
+	tools.Bot = bot
 
 	return nil
 }

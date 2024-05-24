@@ -137,6 +137,14 @@ func GetSubscription(userId int64) *Subscription {
 	return sub
 }
 
+func GetAllSubscription() []*Subscription {
+	mutex.RLock()
+	sub := []*Subscription{}
+	SESSION.Find(sub)
+	mutex.RUnlock()
+	return sub
+}
+
 func SaveSubscription(sub *Subscription) {
 	mutex.Lock()
 	tx := SESSION.Begin()
@@ -189,6 +197,14 @@ func GetUncompletedPayment(userId int64) []*Payment {
 	SESSION.Where("user_id = ? AND is_done = ?", userId, false).Find(&payms)
 	mutex.RUnlock()
 	return payms
+}
+
+func IsHavePayment(userId int64) bool {
+	mutex.RLock()
+	payms := []*Payment{}
+	SESSION.Where("user_id = ? AND is_done = ?", userId, true).Find(&payms)
+	mutex.RUnlock()
+	return len(payms) > 0
 }
 
 func SavePayment(paym *Payment) {
