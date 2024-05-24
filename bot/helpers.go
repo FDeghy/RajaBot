@@ -5,6 +5,7 @@ import (
 	"RajaBot/config"
 	"RajaBot/core"
 	"RajaBot/payment"
+	"RajaBot/tools"
 	"errors"
 	"log"
 	"net/http"
@@ -47,6 +48,11 @@ func CreateBot() error {
 	if err != nil {
 		return errors.New("failed to load stations")
 	}
+	// load routes
+	err = loadRoutes()
+	if err != nil {
+		return errors.New("failed to load routes")
+	}
 
 	dispatcher = ext.NewDispatcher(&ext.DispatcherOpts{})
 	updater = ext.NewUpdater(dispatcher, nil)
@@ -83,4 +89,10 @@ func loadStations() error {
 	}
 	rajaHandler.Stations = sts
 	return nil
+}
+
+func loadRoutes() error {
+	err := tools.LoadRoutes()
+	rajaHandler.Routes = tools.Routes
+	return err
 }

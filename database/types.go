@@ -12,8 +12,8 @@ type TrainWR struct {
 	Day     int64  `json:"day"`
 	TrainId int    `json:"train_id"`
 	Hour    string `json:"hour"`
-	Src     int    `json:"src"`
-	Dst     int    `json:"dst"`
+	Src     int    `json:"src"` // in homei mode is route id
+	Dst     int    `json:"dst"` // -1 mean homei
 	IsDone  bool   `json:"is_done"`
 }
 

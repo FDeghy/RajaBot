@@ -19,6 +19,7 @@ var (
 	workers       = make(map[Work]chan struct{}) //fetchWorkers
 	userTimeCache = make(map[userCache]int64)
 	res           = make(chan *TrainData, config.Cfg.Raja.Buffer)
+	rtRes         = make(chan *RtTrainData, config.Cfg.Raja.Buffer)
 )
 
 var (

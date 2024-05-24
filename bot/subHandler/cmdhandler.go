@@ -27,8 +27,10 @@ func _sub(b *gotgbot.Bot, ctx *ext.Context) error {
 		ctx.EffectiveChat.Id,
 		text,
 		&gotgbot.SendMessageOpts{
-			ReplyToMessageId: ctx.EffectiveMessage.MessageId,
-			ReplyMarkup:      markup,
+			ReplyParameters: &gotgbot.ReplyParameters{
+				MessageId: ctx.EffectiveMessage.MessageId,
+			},
+			ReplyMarkup: markup,
 		},
 	)
 

@@ -3,6 +3,7 @@ package tools
 import (
 	"RajaBot/config"
 	"RajaBot/database"
+	siteapi "RajaBot/siteApi"
 	"fmt"
 	"slices"
 
@@ -44,4 +45,13 @@ func CheckReachLimit(user database.TgUser) bool {
 
 func IsAdmin(userId int64) bool {
 	return slices.Contains(config.Cfg.Bot.Admins, userId)
+}
+
+func LoadRoutes() error {
+	rts, err := siteapi.GetRoutes()
+	if err != nil {
+		return err
+	}
+	Routes = rts
+	return nil
 }

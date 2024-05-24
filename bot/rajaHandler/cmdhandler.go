@@ -55,28 +55,31 @@ func _new(b *gotgbot.Bot, ctx *ext.Context) error {
 			ctx.EffectiveChat.Id,
 			text,
 			&gotgbot.SendMessageOpts{
-				ReplyToMessageId: ctx.EffectiveMessage.MessageId,
-				ReplyMarkup:      markup,
+				ReplyParameters: &gotgbot.ReplyParameters{
+					MessageId: ctx.EffectiveMessage.MessageId,
+				},
+				ReplyMarkup: markup,
 			},
 		)
 		return nil
 	}
 
-	if Stations == nil {
+	if Stations == nil || Routes == nil {
 		b.SendMessage(ctx.EffectiveChat.Id, StationsLoadErr, nil)
 		return nil
 	}
 
-	markup, err := createStationsMarkup(0, "src")
-	if err != nil {
-		b.SendMessage(ctx.EffectiveChat.Id, StationsLoadErr, nil)
-		return nil
-	}
-
-	b.SendMessage(ctx.EffectiveChat.Id, SrcMsg, &gotgbot.SendMessageOpts{
-		ReplyMarkup:      markup,
-		ReplyToMessageId: ctx.EffectiveMessage.MessageId,
+	b.SendMessage(ctx.EffectiveChat.Id, SelectTypeMsg, &gotgbot.SendMessageOpts{
+		ReplyParameters: &gotgbot.ReplyParameters{
+			MessageId: ctx.EffectiveMessage.MessageId,
+		},
+		ReplyMarkup: &gotgbot.InlineKeyboardMarkup{
+			InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
+				{{Text: NormalRajaBtn, CallbackData: "new-raja"}, {Text: HomeiBtn, CallbackData: "new-homei"}},
+			},
+		},
 	})
+
 	return nil
 }
 

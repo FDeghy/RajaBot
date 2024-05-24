@@ -3,11 +3,13 @@ package rajaHandler
 import (
 	"RajaBot/config"
 	"RajaBot/database"
+	siteapi "RajaBot/siteApi"
 	"RajaBot/tools"
 	"errors"
 	"fmt"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -57,6 +59,26 @@ func createStationsMarkup(page int, prefix string) (*gotgbot.InlineKeyboardMarku
 	}
 	markup.InlineKeyboard = append(markup.InlineKeyboard, row)
 	return markup, nil
+}
+
+func createRoutesMarkup() *gotgbot.InlineKeyboardMarkup {
+	markup := &gotgbot.InlineKeyboardMarkup{}
+	row := []gotgbot.InlineKeyboardButton{}
+	for i, rt := range Routes {
+		if i%3 == 0 && i != 0 {
+			markup.InlineKeyboard = append(markup.InlineKeyboard, row)
+			row = []gotgbot.InlineKeyboardButton{}
+		}
+		row = append(row, gotgbot.InlineKeyboardButton{
+			Text:         rt.Name,
+			CallbackData: fmt.Sprintf("rt-%s", rt.ID),
+		})
+		i++
+	}
+	if len(row) != 0 {
+		markup.InlineKeyboard = append(markup.InlineKeyboard, row)
+	}
+	return markup
 }
 
 func createTaqvimMarkup(sal int, mah int) (*gotgbot.InlineKeyboardMarkup, error) {
@@ -177,14 +199,60 @@ func createTrainListMarkup(tr database.TrainWR) (*gotgbot.InlineKeyboardMarkup, 
 	return markup, nil
 }
 
+func createTrainRtListMarkup(tr database.TrainWR) (*gotgbot.InlineKeyboardMarkup, error) {
+	markup := &gotgbot.InlineKeyboardMarkup{}
+
+	route := Routes.FindRoute(strconv.Itoa(tr.Src))
+	pt := ptime.Unix(tr.Day, 0)
+	trainList, err := siteapi.GetTrains(route.Src, route.Dst, pt.Format("yyyy/MM/dd"))
+	if err != nil {
+		return markup, err
+	}
+
+	if len(trainList) == 0 {
+		return &gotgbot.InlineKeyboardMarkup{
+			InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
+				Text:         TrainNotFound,
+				CallbackData: "nil",
+			}}},
+		}, nil
+	}
+
+	for _, train := range trainList {
+		clock := strings.Split(train.StartTime, ":")
+		hour, _ := strconv.Atoi(clock[0])
+		minute, _ := strconv.Atoi(clock[1])
+		pt.SetHour(hour)
+		pt.SetMinute(minute)
+		callbackData := fmt.Sprintf("rttr-%d-%s", train.ID, train.StartTime)
+		if time.Now().Unix() >= pt.Unix() {
+			callbackData = fmt.Sprintf("oldtr-%d", train.ID)
+		}
+		markup.InlineKeyboard = append(markup.InlineKeyboard, []gotgbot.InlineKeyboardButton{
+			{
+				Text:         fmt.Sprintf(TrainButtonText, train.StartTime, strings.TrimSpace(train.CompartmentHelp+" "+train.CompanyName), tools.NumToMoney(int(train.SeatPrice/10))),
+				CallbackData: callbackData,
+			},
+		})
+	}
+	return markup, nil
+}
+
 func createListMsg(trs []*database.TrainWR) string {
 	if len(trs) == 0 {
 		return EmptyTrainWR
 	}
 	msg := ListReqs + "\n"
 	for i, tr := range trs {
-		src, _ := Stations.GetPersianName(tr.Src)
-		dst, _ := Stations.GetPersianName(tr.Dst)
+		var src, dst string
+		if tr.Dst != -1 { // raja api (1)
+			src, _ = Stations.GetPersianName(tr.Src)
+			dst, _ = Stations.GetPersianName(tr.Dst)
+		} else { // ticket.rai api (2)
+			route := tools.Routes.FindRoute(strconv.Itoa(tr.Src))
+			s := strings.Split(route.Name, " به ")
+			src, dst = s[0], s[1]
+		}
 		msg += fmt.Sprintf(
 			"%v\\.\n"+
 				">روز\\: %v\n"+

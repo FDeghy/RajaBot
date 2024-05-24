@@ -1,6 +1,10 @@
 package core
 
-import "github.com/FDeghy/RajaGo/raja"
+import (
+	siteapi "RajaBot/siteApi"
+
+	"github.com/FDeghy/RajaGo/raja"
+)
 
 type Work struct {
 	Src int
@@ -10,6 +14,11 @@ type Work struct {
 
 type TrainData struct {
 	TrainList *raja.TrainList
+	Work      Work
+}
+
+type RtTrainData struct {
+	TrainList []*siteapi.Train
 	Work      Work
 }
 
