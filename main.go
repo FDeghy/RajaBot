@@ -61,7 +61,13 @@ func main() {
 
 func addall() {
 	days := 30
-	err := bot.CreateBot()
+
+	err := config.ParseConfig("config.toml")
+	if err != nil {
+		log.Fatalln("failed to parse config.")
+	}
+
+	err = bot.CreateBot()
 	if err != nil {
 		log.Fatalf("failed to create bot.\nerror: %v\n", err)
 	}
@@ -79,6 +85,7 @@ func addall() {
 				log.Printf("Error: %v, User: %v", err, user.UserID)
 				continue
 			}
+			log.Printf("add %v days to %v", days, user.UserID)
 		}
 	}
 }
