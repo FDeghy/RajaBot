@@ -140,7 +140,7 @@ func GetSubscription(userId int64) *Subscription {
 func GetAllSubscription() []*Subscription {
 	mutex.RLock()
 	sub := []*Subscription{}
-	SESSION.Find(sub)
+	SESSION.Find(&sub)
 	mutex.RUnlock()
 	return sub
 }
