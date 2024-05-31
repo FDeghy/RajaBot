@@ -309,7 +309,9 @@ func GetRtsByDate(src, dst string, date ptime.Time) []siteapi.Train {
 		return nil
 	}
 
-	trainsOfDate := doc.Get("rts").([]siteapi.Train)
-
+	trainsOfDate, ok := doc.Get("rts").([]siteapi.Train)
+	if !ok {
+		return nil
+	}
 	return trainsOfDate
 }
