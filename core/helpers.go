@@ -3,12 +3,14 @@ package core
 import (
 	"RajaBot/config"
 	"RajaBot/database"
+	siteapi "RajaBot/siteApi"
 	"RajaBot/tools"
 	"log"
 	"slices"
 
 	"github.com/FDeghy/RajaGo/raja"
 	"github.com/PaulSonOfLars/gotgbot/v2"
+	ptime "github.com/yaa110/go-persian-calendar"
 )
 
 func StartCore() error {
@@ -23,6 +25,9 @@ func StartCore() error {
 		go procWorker(quit)
 	}
 	log.Printf("Core -> %v procWorker started.", config.Cfg.Raja.Worker)
+
+	go rtGetTrainsWorker()
+	log.Printf("Core -> rtGetTrainsWorker started.")
 
 	uncompTrainWRs := database.GetAllActiveTrainWRs()
 	noHaveSubUsers := []int64{}
@@ -57,4 +62,18 @@ func StartCore() error {
 	log.Printf("Core -> %v uncompleted task sent to handler.", len(uncompTrainWRs))
 
 	return nil
+}
+
+func UpdateRtsTrains(route *siteapi.Route, date ptime.Time) ([]siteapi.Train, error) {
+	trainList, err := siteapi.GetTrains(route.Src, route.Dst, date.Format("yyyy/MM/dd"))
+	if err != nil || len(trainList) == 0 {
+		return nil, err
+	}
+
+	oldTrainList := database.GetRtsByDate(route.Src, route.Dst, date)
+	newTrainList := unionRtsData(oldTrainList, tools.SlicePtrToSlice(trainList))
+
+	database.SetRtsByDate(route.Src, route.Dst, date, newTrainList)
+
+	return newTrainList, nil
 }

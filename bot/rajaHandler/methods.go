@@ -2,8 +2,8 @@ package rajaHandler
 
 import (
 	"RajaBot/config"
+	"RajaBot/core"
 	"RajaBot/database"
-	siteapi "RajaBot/siteApi"
 	"RajaBot/tools"
 	"errors"
 	"fmt"
@@ -61,6 +61,7 @@ func createStationsMarkup(page int, prefix string) (*gotgbot.InlineKeyboardMarku
 	return markup, nil
 }
 
+// rt - new raja api ticket.rai (2)
 func createRoutesMarkup() *gotgbot.InlineKeyboardMarkup {
 	markup := &gotgbot.InlineKeyboardMarkup{}
 	row := []gotgbot.InlineKeyboardButton{}
@@ -204,18 +205,26 @@ func createTrainRtListMarkup(tr database.TrainWR) (*gotgbot.InlineKeyboardMarkup
 
 	route := Routes.FindRoute(strconv.Itoa(tr.Src))
 	pt := ptime.Unix(tr.Day, 0)
-	trainList, err := siteapi.GetTrains(route.Src, route.Dst, pt.Format("yyyy/MM/dd"))
-	if err != nil {
-		return markup, err
-	}
+	// trainList, err := siteapi.GetTrains(route.Src, route.Dst, pt.Format("yyyy/MM/dd"))
+	// if err != nil {
+	// 	return markup, err
+	// }
+	trainList := database.GetRtsByDate(route.Src, route.Dst, pt)
 
-	if len(trainList) == 0 {
-		return &gotgbot.InlineKeyboardMarkup{
-			InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
-				Text:         TrainNotFound,
-				CallbackData: "nil",
-			}}},
-		}, nil
+	maxTries := 1
+	for i := 0; i <= maxTries; i++ {
+		if i == maxTries && len(trainList) == 0 { // failed (end)
+			return &gotgbot.InlineKeyboardMarkup{
+				InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
+					Text:         TrainNotFound,
+					CallbackData: "nil",
+				}}},
+			}, nil
+		} else if len(trainList) == 0 { // try again and try again
+			trainList, _ = core.UpdateRtsTrains(route, pt)
+		} else { // db have train list
+			break
+		}
 	}
 
 	for _, train := range trainList {

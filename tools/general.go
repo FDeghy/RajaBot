@@ -55,3 +55,11 @@ func LoadRoutes() error {
 	Routes = rts
 	return nil
 }
+
+func SlicePtrToSlice[T any](a []*T) []T {
+	b := make([]T, len(a))
+	for i, v := range a {
+		b[i] = *v
+	}
+	return b
+}

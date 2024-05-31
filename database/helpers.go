@@ -2,7 +2,14 @@ package database
 
 import (
 	"RajaBot/config"
+	siteapi "RajaBot/siteApi"
+	"errors"
+	"fmt"
 
+	"github.com/ostafen/clover/v2"
+	"github.com/ostafen/clover/v2/document"
+	"github.com/ostafen/clover/v2/query"
+	ptime "github.com/yaa110/go-persian-calendar"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -25,7 +32,22 @@ func StartDatabase() error {
 	if err != nil {
 		return err
 	}
+
+	// rt trains nosql db
+	cdb, err = clover.Open("rtDatabase")
+	if err != nil {
+		return err
+	}
+	err = cdb.CreateCollection("trains")
+	if err != nil && !errors.Is(err, clover.ErrCollectionExist) {
+		return err
+	}
+
 	return nil
+}
+
+func CloseDatabase() {
+	cdb.Close()
 }
 
 func GetTgUser(id int64) *TgUser {
@@ -229,4 +251,65 @@ func DeletePayment(paym *Payment) {
 	tx.Delete(paym)
 	tx.Commit()
 	mutex.Unlock()
+}
+
+func SetRtsByDate(src, dst string, date ptime.Time, trains []siteapi.Train) {
+	var doc *document.Document
+
+	oldDoc, _ := _getRtsByDate(src, dst, date)
+	if oldDoc == nil { // insert new
+
+		doc = document.NewDocument()
+		doc.Set(
+			"key",
+			fmt.Sprintf("%v-%v-%v", src, dst, date.Unix()),
+		)
+		doc.Set("rts", trains)
+
+		// expire the next day
+		exp := date.AddDate(0, 0, 1)
+		doc.SetExpiresAt(exp.Time())
+
+		rtMutex.Lock()
+		cdb.InsertOne("trains", doc)
+		rtMutex.Unlock()
+
+	} else { // update old
+
+		rtMutex.Lock()
+		cdb.UpdateById(
+			"trains",
+			oldDoc.ObjectId(),
+			func(doc *document.Document) *document.Document {
+				doc.Set("rts", trains)
+				return doc
+			},
+		)
+		rtMutex.Unlock()
+
+	}
+}
+
+func _getRtsByDate(src, dst string, date ptime.Time) (*document.Document, error) {
+	rtMutex.RLock()
+	defer rtMutex.RUnlock()
+
+	query := query.NewQuery("trains").Where(
+		query.Field("key").Eq(
+			fmt.Sprintf("%v-%v-%v", src, dst, date.Unix()),
+		),
+	)
+
+	return cdb.FindFirst(query)
+}
+
+func GetRtsByDate(src, dst string, date ptime.Time) []siteapi.Train {
+	doc, err := _getRtsByDate(src, dst, date)
+	if err != nil || doc == nil {
+		return nil
+	}
+
+	trainsOfDate := doc.Get("rts").([]siteapi.Train)
+
+	return trainsOfDate
 }

@@ -49,3 +49,5 @@ config.toml
 rajabot.db
 *.toml
 *.db
+
+rtDatabase/*

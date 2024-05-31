@@ -6,6 +6,7 @@ import (
 	"RajaBot/prometheus"
 	siteapi "RajaBot/siteApi"
 	"RajaBot/tools"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -127,4 +128,64 @@ func rtFetchWorker(wk Work, q chan struct{}) {
 			return
 		}
 	}
+}
+
+func rtGetTrainsWorker() {
+	for _, route := range tools.Routes {
+
+		// idc about other routes at the moment
+		if !strings.Contains(route.Name, "تهران") {
+			continue
+		}
+
+		go func(route *siteapi.Route) {
+			for {
+				pt := ptime.Now()
+				for i := 0; i < 30; i++ { // next 30 days
+					_, err := UpdateRtsTrains(route, pt)
+					if err != nil { //&& !errors.Is(err, siteapi.ErrJsonDecode) {
+						i--
+						time.Sleep(5 * time.Second)
+						continue
+					}
+
+					pt = pt.AddDate(0, 0, 1)
+
+					time.Sleep(1 * time.Second)
+				}
+				time.Sleep(3 * time.Hour)
+			}
+		}(route)
+	}
+}
+
+func unionRtsData(old, new []siteapi.Train) []siteapi.Train {
+	result := slices.Clone(old)
+
+	for _, tr := range new {
+		if ind := slices.IndexFunc(
+			result,
+			func(j siteapi.Train) bool {
+				return j.ID == tr.ID
+			},
+		); ind >= 0 { // update
+			result[ind] = tr
+		} else { // append new
+			result = append(result, tr)
+		}
+	}
+
+	slices.SortFunc(result, func(a, b siteapi.Train) int {
+		var i int
+		if a.StartTime < b.StartTime {
+			i = -1
+		} else if a.StartTime > b.StartTime {
+			i = 1
+		} else {
+			i = 0
+		}
+		return i
+	})
+
+	return result
 }

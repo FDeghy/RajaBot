@@ -31,7 +31,7 @@ func GetRoutes() (Routes, error) {
 
 	for _, i := range match {
 		r := &Route{ID: i[1], Name: i[2]}
-		r.GetStationsID()
+		r.GetStationsID() // set src and dst in r
 		routes = append(routes, r)
 	}
 	return routes, nil
@@ -51,19 +51,26 @@ func GetTrains(src, dst, date string) ([]*Train, error) {
 		strings.NewReader(form.Encode()),
 	)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, ErrBadHttpCode
+	}
+
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
+
 	data := []*Train{}
 	err = json.Unmarshal(respBody, &data)
 	if err != nil {
-		return nil, err
+		return nil, ErrJsonDecode
 	}
 
 	return data, nil
