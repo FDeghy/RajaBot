@@ -1,7 +1,5 @@
 package database
 
-import siteapi "RajaBot/siteApi"
-
 type TgUser struct {
 	UserID int64  `json:"user_id" gorm:"primaryKey"`
 	IsVip  bool   `json:"is_vip"`
@@ -42,9 +40,9 @@ type Payment struct {
 }
 
 type RTTrain struct {
-	Id     uint64          `json:"id" gorm:"primaryKey"`
-	Src    string          `json:"src"`
-	Dst    string          `json:"dst"`
-	Date   int64           `json:"date"`
-	Trains []siteapi.Train `json:"trains" gorm:"polymorphic:Train;"`
+	Id     uint64 `json:"id" gorm:"primaryKey"`
+	Src    string `json:"src"`
+	Dst    string `json:"dst"`
+	Date   int64  `json:"date"`
+	Trains string `json:"trains"`
 }

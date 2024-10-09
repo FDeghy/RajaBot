@@ -3,6 +3,7 @@ package database
 import (
 	"RajaBot/config"
 	siteapi "RajaBot/siteApi"
+	"encoding/json"
 
 	ptime "github.com/yaa110/go-persian-calendar"
 	"gorm.io/driver/sqlite"
@@ -236,11 +237,12 @@ func DeletePayment(paym *Payment) {
 }
 
 func SetRtsByDate(src, dst string, date ptime.Time, trains []siteapi.Train) {
+	jsonTrains, _ := json.Marshal(trains)
 	rts := &RTTrain{
 		Src:    src,
 		Dst:    dst,
 		Date:   date.Unix(),
-		Trains: trains,
+		Trains: string(jsonTrains),
 	}
 
 	rtMutex.Lock()
@@ -262,9 +264,15 @@ func _getRtsByDate(src, dst string, date ptime.Time) *RTTrain {
 
 func GetRtsByDate(src, dst string, date ptime.Time) []siteapi.Train {
 	rts := _getRtsByDate(src, dst, date)
-	if rts == nil || rts.Trains == nil {
+	if rts == nil {
 		return nil
 	}
 
-	return rts.Trains
+	var trains []siteapi.Train
+	err := json.Unmarshal([]byte(rts.Trains), &trains)
+	if err != nil {
+		return nil
+	}
+
+	return trains
 }
