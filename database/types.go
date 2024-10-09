@@ -46,5 +46,5 @@ type RTTrain struct {
 	Src    string          `json:"src"`
 	Dst    string          `json:"dst"`
 	Date   int64           `json:"date"`
-	Trains []siteapi.Train `json:"trains" gorm:"polymorphic:Qatar;"`
+	Trains []siteapi.Train `json:"trains" gorm:"polymorphic:Train;"`
 }
