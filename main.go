@@ -37,7 +37,6 @@ func main() {
 	if err != nil {
 		log.Fatalln("failed to start database.")
 	}
-	defer database.CloseDatabase()
 
 	err = core.StartCore()
 	if err != nil {

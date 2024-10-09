@@ -1,5 +1,7 @@
 package database
 
+import siteapi "RajaBot/siteApi"
+
 type TgUser struct {
 	UserID int64  `json:"user_id" gorm:"primaryKey"`
 	IsVip  bool   `json:"is_vip"`
@@ -37,4 +39,12 @@ type Payment struct {
 	OrderDate     string `json:"order_date"`
 	StatusCode    int    `json:"status_code"`
 	IsDone        bool   `json:"is_done"`
+}
+
+type RTTrain struct {
+	Id     uint64          `json:"id" gorm:"primaryKey"`
+	Src    string          `json:"src"`
+	Dst    string          `json:"dst"`
+	Date   int64           `json:"date"`
+	Trains []siteapi.Train `json:"trains"`
 }

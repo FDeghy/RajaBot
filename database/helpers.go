@@ -3,12 +3,7 @@ package database
 import (
 	"RajaBot/config"
 	siteapi "RajaBot/siteApi"
-	"errors"
-	"fmt"
 
-	"github.com/ostafen/clover/v2"
-	"github.com/ostafen/clover/v2/document"
-	"github.com/ostafen/clover/v2/query"
 	ptime "github.com/yaa110/go-persian-calendar"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -28,26 +23,13 @@ func StartDatabase() error {
 		&TrainWR{},
 		&Subscription{},
 		&Payment{},
+		&RTTrain{},
 	)
 	if err != nil {
 		return err
 	}
 
-	// rt trains nosql db
-	cdb, err = clover.Open("rtDatabase")
-	if err != nil {
-		return err
-	}
-	err = cdb.CreateCollection("trains")
-	if err != nil && !errors.Is(err, clover.ErrCollectionExist) {
-		return err
-	}
-
 	return nil
-}
-
-func CloseDatabase() {
-	cdb.Close()
 }
 
 func GetTgUser(id int64) *TgUser {
@@ -254,64 +236,35 @@ func DeletePayment(paym *Payment) {
 }
 
 func SetRtsByDate(src, dst string, date ptime.Time, trains []siteapi.Train) {
-	var doc *document.Document
-
-	oldDoc, _ := _getRtsByDate(src, dst, date)
-	if oldDoc == nil { // insert new
-
-		doc = document.NewDocument()
-		doc.Set(
-			"key",
-			fmt.Sprintf("%v-%v-%v", src, dst, date.Unix()),
-		)
-		doc.Set("rts", trains)
-
-		// expire the next day
-		exp := date.AddDate(0, 0, 1)
-		doc.SetExpiresAt(exp.Time())
-
-		rtMutex.Lock()
-		cdb.InsertOne("trains", doc)
-		rtMutex.Unlock()
-
-	} else { // update old
-
-		rtMutex.Lock()
-		cdb.UpdateById(
-			"trains",
-			oldDoc.ObjectId(),
-			func(doc *document.Document) *document.Document {
-				doc.Set("rts", trains)
-				return doc
-			},
-		)
-		rtMutex.Unlock()
-
+	rts := &RTTrain{
+		Src:    src,
+		Dst:    dst,
+		Date:   date.Unix(),
+		Trains: trains,
 	}
+
+	rtMutex.Lock()
+	tx := SESSION.Begin()
+	tx.Save(rts)
+	tx.Commit()
+	rtMutex.Unlock()
 }
 
-func _getRtsByDate(src, dst string, date ptime.Time) (*document.Document, error) {
+func _getRtsByDate(src, dst string, date ptime.Time) *RTTrain {
 	rtMutex.RLock()
 	defer rtMutex.RUnlock()
 
-	query := query.NewQuery("trains").Where(
-		query.Field("key").Eq(
-			fmt.Sprintf("%v-%v-%v", src, dst, date.Unix()),
-		),
-	)
+	trains := &RTTrain{}
+	SESSION.Where("src = ? AND dst = ? AND date = ?", src, dst, date.Unix()).Take(trains)
 
-	return cdb.FindFirst(query)
+	return trains
 }
 
 func GetRtsByDate(src, dst string, date ptime.Time) []siteapi.Train {
-	doc, err := _getRtsByDate(src, dst, date)
-	if err != nil || doc == nil {
+	rts := _getRtsByDate(src, dst, date)
+	if rts == nil || rts.Trains == nil {
 		return nil
 	}
 
-	trainsOfDate, ok := doc.Get("rts").([]siteapi.Train)
-	if !ok {
-		return nil
-	}
-	return trainsOfDate
+	return rts.Trains
 }
