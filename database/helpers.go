@@ -237,11 +237,13 @@ func DeletePayment(paym *Payment) {
 }
 
 func SetRtsByDate(src, dst string, date ptime.Time, trains []siteapi.Train) {
+	pt := date
+	pt.At(0, 0, 0, 0)
 	jsonTrains, _ := json.Marshal(trains)
 	rts := &RTTrain{
 		Src:    src,
 		Dst:    dst,
-		Date:   date.Unix(),
+		Date:   pt.Unix(),
 		Trains: string(jsonTrains),
 	}
 
@@ -263,7 +265,9 @@ func _getRtsByDate(src, dst string, date ptime.Time) *RTTrain {
 }
 
 func GetRtsByDate(src, dst string, date ptime.Time) []siteapi.Train {
-	rts := _getRtsByDate(src, dst, date)
+	pt := date
+	pt.At(0, 0, 0, 0)
+	rts := _getRtsByDate(src, dst, pt)
 	if rts == nil {
 		return nil
 	}
@@ -275,4 +279,12 @@ func GetRtsByDate(src, dst string, date ptime.Time) []siteapi.Train {
 	}
 
 	return trains
+}
+
+func DeleteRtsByDate(date ptime.Time) {
+	mutex.Lock()
+	tx := SESSION.Begin()
+	tx.Where("date < ?", date.Unix()).Delete(&RTTrain{})
+	tx.Commit()
+	mutex.Unlock()
 }

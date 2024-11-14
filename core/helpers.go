@@ -71,7 +71,7 @@ func UpdateRtsTrains(route *siteapi.Route, date ptime.Time) ([]siteapi.Train, er
 	}
 
 	oldTrainList := database.GetRtsByDate(route.Src, route.Dst, date)
-	newTrainList := unionRtsData(oldTrainList, tools.SlicePtrToSlice(trainList))
+	newTrainList := unionRtsData(oldTrainList, trainList)
 
 	database.SetRtsByDate(route.Src, route.Dst, date, newTrainList)
 

@@ -6,6 +6,7 @@ import (
 	"RajaBot/prometheus"
 	siteapi "RajaBot/siteApi"
 	"RajaBot/tools"
+	"log"
 	"slices"
 	"strconv"
 	"strings"
@@ -131,6 +132,15 @@ func rtFetchWorker(wk Work, q chan struct{}) {
 }
 
 func rtGetTrainsWorker() {
+	// delete old trains
+	go func() {
+		for {
+			database.DeleteRtsByDate(ptime.Now())
+			time.Sleep(12 * time.Hour)
+		}
+	}()
+
+	// get * update trains
 	for _, route := range tools.Routes {
 
 		// idc about other routes at the moment
@@ -141,9 +151,11 @@ func rtGetTrainsWorker() {
 		go func(route *siteapi.Route) {
 			for {
 				pt := ptime.Now()
-				for i := 0; i < 30; i++ { // next 30 days
+				pt.At(0, 0, 0, 0)
+				for i := 0; i < 7; i++ { // next 7 days
 					_, err := UpdateRtsTrains(route, pt)
 					if err != nil { //&& !errors.Is(err, siteapi.ErrJsonDecode) {
+						log.Printf("error at UpdateRtsTrains: %v", err)
 						i--
 						time.Sleep(5 * time.Second)
 						continue
@@ -153,25 +165,25 @@ func rtGetTrainsWorker() {
 
 					time.Sleep(1 * time.Second)
 				}
-				time.Sleep(3 * time.Hour)
+				time.Sleep(1 * time.Hour)
 			}
 		}(route)
 	}
 }
 
-func unionRtsData(old, new []siteapi.Train) []siteapi.Train {
-	result := slices.Clone(old)
+func unionRtsData(old []siteapi.Train, new []*siteapi.Train) []siteapi.Train {
+	result := old
 
 	for _, tr := range new {
 		if ind := slices.IndexFunc(
 			result,
 			func(j siteapi.Train) bool {
-				return j.ID == tr.ID
+				return j.Number == tr.Number
 			},
-		); ind >= 0 { // update
-			result[ind] = tr
+		); ind != -1 { // update
+			result[ind] = *tr
 		} else { // append new
-			result = append(result, tr)
+			result = append(result, *tr)
 		}
 	}
 

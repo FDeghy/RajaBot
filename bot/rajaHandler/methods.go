@@ -205,6 +205,7 @@ func createTrainRtListMarkup(tr database.TrainWR) (*gotgbot.InlineKeyboardMarkup
 
 	route := Routes.FindRoute(strconv.Itoa(tr.Src))
 	pt := ptime.Unix(tr.Day, 0)
+	pt.At(0, 0, 0, 0)
 	// trainList, err := siteapi.GetTrains(route.Src, route.Dst, pt.Format("yyyy/MM/dd"))
 	// if err != nil {
 	// 	return markup, err
