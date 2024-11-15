@@ -210,7 +210,7 @@ func createTrainRtListMarkup(tr database.TrainWR) (*gotgbot.InlineKeyboardMarkup
 	// if err != nil {
 	// 	return markup, err
 	// }
-	trainList := database.GetRtsByDate(route.Src, route.Dst, pt)
+	trainList, _ := core.UpdateRtsTrains(route, pt)
 
 	maxTries := 1
 	for i := 0; i <= maxTries; i++ {
