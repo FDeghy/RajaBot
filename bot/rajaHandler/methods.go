@@ -4,6 +4,7 @@ import (
 	"RajaBot/config"
 	"RajaBot/core"
 	"RajaBot/database"
+	"RajaBot/siteApi/mrbilit"
 	"RajaBot/tools"
 	"errors"
 	"fmt"
@@ -185,7 +186,7 @@ func createTrainListMarkup(tr database.TrainWR) (*gotgbot.InlineKeyboardMarkup, 
 	}
 
 	for _, train := range trainList.Trains {
-		callbackData := fmt.Sprintf("tr-%d-%s", train.RowID, train.ExitTime)
+		callbackData := fmt.Sprintf("tr-raja-%d-%s", train.RowID, train.ExitTime)
 		exitTime, _ := time.ParseInLocation("2006-01-02T15:04:05", train.ExitDateTime, ptime.Iran())
 		if time.Now().Unix() >= exitTime.Unix() {
 			callbackData = fmt.Sprintf("oldtr-%d", train.RowID)
@@ -241,6 +242,40 @@ func createTrainRtListMarkup(tr database.TrainWR) (*gotgbot.InlineKeyboardMarkup
 		markup.InlineKeyboard = append(markup.InlineKeyboard, []gotgbot.InlineKeyboardButton{
 			{
 				Text:         fmt.Sprintf(TrainButtonText, train.StartTime, strings.TrimSpace(train.CompartmentHelp+" "+train.CompanyName), tools.NumToMoney(int(train.SeatPrice/10))),
+				CallbackData: callbackData,
+			},
+		})
+	}
+	return markup, nil
+}
+
+func createTrainListThrdAppMarkup(tr database.TrainWR) (*gotgbot.InlineKeyboardMarkup, error) {
+	markup := &gotgbot.InlineKeyboardMarkup{}
+
+	date := ptime.Unix(tr.Day, 0).Time().Format("2006-01-02")
+
+	trains, err := mrbilit.GetTrains(strconv.Itoa(tr.Src), strconv.Itoa(tr.Dst), date)
+	if err != nil {
+		markup.InlineKeyboard = append(markup.InlineKeyboard, []gotgbot.InlineKeyboardButton{
+			{
+				Text:         TrainNotFound,
+				CallbackData: "nil",
+			},
+		})
+		return markup, err
+	}
+
+	for _, train := range trains {
+		ti, _ := time.ParseInLocation("2006-01-02T15:04:05", train.DepartureTime, ptime.Iran())
+		exitTime := ptime.New(ti)
+		callbackData := fmt.Sprintf("tr-ta-%v-%v", train.ID, exitTime.Format("HH:mm"))
+		price := train.Prices[0].Classes[0]
+		if time.Now().Unix() >= exitTime.Unix() {
+			callbackData = fmt.Sprintf("oldtr-%d", train.ID)
+		}
+		markup.InlineKeyboard = append(markup.InlineKeyboard, []gotgbot.InlineKeyboardButton{
+			{
+				Text:         fmt.Sprintf(TrainButtonText, exitTime.Format("HH:mm"), fmt.Sprintf("%v %v", train.CorporationName, train.TrainNumber), tools.NumToMoney(int(price.Price/10))),
 				CallbackData: callbackData,
 			},
 		})

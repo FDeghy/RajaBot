@@ -17,7 +17,7 @@ import (
 // new
 func _newcb(b *gotgbot.Bot, ctx *ext.Context) error {
 	if mode := strings.TrimPrefix(ctx.CallbackQuery.Data, "new-"); mode == "raja" {
-		markup, err := createStationsMarkup(0, "src")
+		markup, err := createStationsMarkup(0, "src-raja")
 		if err != nil {
 			b.SendMessage(ctx.EffectiveChat.Id, StationsLoadErr, nil)
 			return nil
@@ -36,6 +36,18 @@ func _newcb(b *gotgbot.Bot, ctx *ext.Context) error {
 			MessageId:   ctx.EffectiveMessage.MessageId,
 			ReplyMarkup: *markup,
 		})
+	} else if mode == "thrdapp" {
+		markup, err := createStationsMarkup(0, "src-ta")
+		if err != nil {
+			b.SendMessage(ctx.EffectiveChat.Id, StationsLoadErr, nil)
+			return nil
+		}
+
+		b.EditMessageText(SrcMsg, &gotgbot.EditMessageTextOpts{
+			ChatId:      ctx.EffectiveChat.Id,
+			MessageId:   ctx.EffectiveMessage.MessageId,
+			ReplyMarkup: *markup,
+		})
 	}
 
 	return nil
@@ -46,10 +58,14 @@ func _pgCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	var prefix string
 
 	d := strings.TrimPrefix(ctx.CallbackQuery.Data, "pg-")
-	if strings.HasPrefix(d, "src") {
-		prefix = "src"
-	} else if strings.HasPrefix(d, "dst") {
-		prefix = "dst"
+	if strings.HasPrefix(d, "src-raja") {
+		prefix = "src-raja"
+	} else if strings.HasPrefix(d, "src-ta") {
+		prefix = "src-ta"
+	} else if strings.HasPrefix(d, "dst-raja") {
+		prefix = "dst-raja"
+	} else if strings.HasPrefix(d, "dst-ta") {
+		prefix = "dst-ta"
 	} else {
 		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
 		return nil
@@ -121,37 +137,73 @@ func _srcCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	src, err := strconv.Atoi(strings.TrimPrefix(ctx.CallbackQuery.Data, "src-"))
-	if err != nil {
-		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
-		return nil
+	if strings.HasPrefix(ctx.CallbackQuery.Data, "src-raja") {
+		src, err := strconv.Atoi(strings.TrimPrefix(ctx.CallbackQuery.Data, "src-raja-"))
+		if err != nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
+		train := &database.TrainWR{
+			UserID: user.UserID,
+			Src:    src,
+			IsDone: false,
+		}
+		tid := database.SaveTrainWR(train)
+
+		user.State = fmt.Sprintf("src-raja-%d", tid)
+		database.UpdateTgUser(user)
+
+		b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
+
+		markup, err := createStationsMarkup(0, "dst-raja")
+		if err != nil {
+			b.SendMessage(ctx.EffectiveChat.Id, StationsLoadErr, nil)
+			return nil
+		}
+
+		b.SendMessage(ctx.EffectiveChat.Id, DstMsg, &gotgbot.SendMessageOpts{
+			ReplyMarkup: markup,
+		})
+
+	} else if strings.HasPrefix(ctx.CallbackQuery.Data, "src-ta") {
+		src, err := strconv.Atoi(strings.TrimPrefix(ctx.CallbackQuery.Data, "src-ta-"))
+		if err != nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
+		train := &database.TrainWR{
+			UserID:  user.UserID,
+			Src:     src,
+			IsDone:  false,
+			ThrdApp: 1,
+		}
+		tid := database.SaveTrainWR(train)
+
+		user.State = fmt.Sprintf("src-ta-%d", tid)
+		database.UpdateTgUser(user)
+
+		b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
+
+		markup, err := createStationsMarkup(0, "dst-ta")
+		if err != nil {
+			b.SendMessage(ctx.EffectiveChat.Id, StationsLoadErr, nil)
+			return nil
+		}
+
+		b.SendMessage(ctx.EffectiveChat.Id, DstMsg, &gotgbot.SendMessageOpts{
+			ReplyMarkup: markup,
+		})
+
 	}
-	train := &database.TrainWR{
-		UserID: user.UserID,
-		Src:    src,
-		IsDone: false,
-	}
-	tid := database.SaveTrainWR(train)
-
-	user.State = fmt.Sprintf("src-%d", tid)
-	database.UpdateTgUser(user)
-
-	b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
-
-	markup, err := createStationsMarkup(0, "dst")
-	if err != nil {
-		b.SendMessage(ctx.EffectiveChat.Id, StationsLoadErr, nil)
-		return nil
-	}
-
-	b.SendMessage(ctx.EffectiveChat.Id, DstMsg, &gotgbot.SendMessageOpts{
-		ReplyMarkup: markup,
-	})
 	return nil
 }
 
 // destination select
 func _dstCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	var dst int
+	var tid uint64
+	var train *database.TrainWR
+
 	user := database.GetTgUser(ctx.EffectiveSender.Id())
 	if user == nil {
 		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
@@ -163,27 +215,55 @@ func _dstCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	tid, err := strconv.ParseUint(strings.TrimPrefix(user.State, "src-"), 10, 64)
-	if err != nil {
-		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
-		return nil
-	}
-	train := database.GetTrainWRByTid(tid)
-	if train == nil {
-		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
-		return nil
-	}
+	if strings.HasPrefix(ctx.CallbackQuery.Data, "dst-raja") {
+		_tid, err := strconv.ParseUint(strings.TrimPrefix(user.State, "src-raja-"), 10, 64)
+		if err != nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
+		tid = _tid
+		train = database.GetTrainWRByTid(tid)
+		if train == nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
 
-	dst, err := strconv.Atoi(strings.TrimPrefix(ctx.CallbackQuery.Data, "dst-"))
-	if err != nil {
-		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
-		return nil
-	}
+		dst, err = strconv.Atoi(strings.TrimPrefix(ctx.CallbackQuery.Data, "dst-raja-"))
+		if err != nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
 
-	train.Dst = dst
-	database.UpdateTrainWR(train)
-	user.State = fmt.Sprintf("dst-%d", tid)
-	database.UpdateTgUser(user)
+		train.Dst = dst
+		database.UpdateTrainWR(train)
+		user.State = fmt.Sprintf("dst-raja-%d", tid)
+		database.UpdateTgUser(user)
+
+	} else if strings.HasPrefix(ctx.CallbackQuery.Data, "dst-ta") {
+		_tid, err := strconv.ParseUint(strings.TrimPrefix(user.State, "src-ta-"), 10, 64)
+		if err != nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
+		tid = _tid
+		train = database.GetTrainWRByTid(tid)
+		if train == nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
+
+		dst, err = strconv.Atoi(strings.TrimPrefix(ctx.CallbackQuery.Data, "dst-ta-"))
+		if err != nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
+
+		train.Dst = dst
+		database.UpdateTrainWR(train)
+		user.State = fmt.Sprintf("dst-ta-%d", tid)
+		database.UpdateTgUser(user)
+
+	}
 
 	b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
 
@@ -203,8 +283,8 @@ func _taqCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
 		return nil
 	}
-	if strings.HasPrefix(user.State, "dst-") {
-		tid, err := strconv.ParseUint(strings.TrimPrefix(user.State, "dst-"), 10, 64)
+	if strings.HasPrefix(user.State, "dst-raja-") {
+		tid, err := strconv.ParseUint(strings.TrimPrefix(user.State, "dst-raja-"), 10, 64)
 		if err != nil {
 			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
 			return nil
@@ -231,7 +311,7 @@ func _taqCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		pt := ptime.Unix(unix, 0)
 		train.Day = unix
 		database.UpdateTrainWR(train)
-		user.State = fmt.Sprintf("taq-%d", tid)
+		user.State = fmt.Sprintf("taq-raja-%d", tid)
 		database.UpdateTgUser(user)
 
 		b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
@@ -254,6 +334,60 @@ func _taqCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 			MessageId:   msg.MessageId,
 			ReplyMarkup: *markup,
 		})
+
+	} else if strings.HasPrefix(user.State, "dst-ta-") {
+		tid, err := strconv.ParseUint(strings.TrimPrefix(user.State, "dst-ta-"), 10, 64)
+		if err != nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
+		train := database.GetTrainWRByTid(tid)
+		if train == nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
+
+		d := strings.TrimPrefix(ctx.CallbackQuery.Data, "taq-")
+		unix, err := strconv.ParseInt(d, 10, 64)
+		if err != nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
+		lastSecDay := ptime.Unix(unix, 0)
+		lastSecDay.Set(lastSecDay.Year(), lastSecDay.Month(), lastSecDay.Day(), 23, 59, 59, 0, ptime.Iran())
+		if time.Now().Unix() >= lastSecDay.Unix() {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: OldDateErr, ShowAlert: true})
+			return nil
+		}
+
+		pt := ptime.Unix(unix, 0)
+		train.Day = unix
+		database.UpdateTrainWR(train)
+		user.State = fmt.Sprintf("taq-ta-%d", tid)
+		database.UpdateTgUser(user)
+
+		b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
+
+		msg, _ := b.SendMessage(ctx.EffectiveChat.Id, GetTrainsInfoMsg, &gotgbot.SendMessageOpts{
+			ReplyMarkup: gotgbot.InlineKeyboardMarkup{},
+		})
+		// todo
+		markup, err := createTrainListThrdAppMarkup(*train)
+		if err != nil {
+			b.EditMessageText(TrainListLoadErr, &gotgbot.EditMessageTextOpts{
+				ChatId:      ctx.EffectiveChat.Id,
+				MessageId:   msg.MessageId,
+				ReplyMarkup: *markup,
+			})
+			b.SendMessage(ctx.EffectiveChat.Id, CancelMsg, nil)
+			return nil
+		}
+		b.EditMessageText(pt.Format(TrainSelMsg), &gotgbot.EditMessageTextOpts{
+			ChatId:      ctx.EffectiveChat.Id,
+			MessageId:   msg.MessageId,
+			ReplyMarkup: *markup,
+		})
+
 	} else if strings.HasPrefix(user.State, "rt-") {
 		tid, err := strconv.ParseUint(strings.TrimPrefix(user.State, "rt-"), 10, 64)
 		if err != nil {
@@ -306,6 +440,7 @@ func _taqCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 			MessageId:   msg.MessageId,
 			ReplyMarkup: *markup,
 		})
+
 	} else {
 		b.DeleteMessage(ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, nil)
 		b.SendMessage(ctx.EffectiveChat.Id, StateErr, nil)
@@ -375,6 +510,11 @@ func _rttrCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 
 // train (& time) select
 func _trCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	var trainId int
+	var tid uint64
+	var train *database.TrainWR
+	var data []string
+
 	user := database.GetTgUser(ctx.EffectiveSender.Id())
 	if user == nil {
 		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
@@ -386,25 +526,55 @@ func _trCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	tid, err := strconv.ParseUint(strings.TrimPrefix(user.State, "taq-"), 10, 64)
-	if err != nil {
-		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
-		return nil
-	}
-	train := database.GetTrainWRByTid(tid)
-	if train == nil {
-		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
-		return nil
-	}
+	if strings.HasPrefix(user.State, "taq-raja-") {
+		_tid, err := strconv.ParseUint(strings.TrimPrefix(user.State, "taq-raja-"), 10, 64)
+		tid = _tid
+		if err != nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
+		_train := database.GetTrainWRByTid(tid)
+		train = _train
+		if train == nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
 
-	d := strings.TrimPrefix(ctx.CallbackQuery.Data, "tr-")
-	data := strings.Split(d, "-")
-	trainId, err := strconv.Atoi(data[0])
-	if err != nil {
-		b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
-		return nil
-	}
+		d := strings.TrimPrefix(ctx.CallbackQuery.Data, "tr-raja-")
+		_data := strings.Split(d, "-")
+		data = _data
+		_trainId, err := strconv.Atoi(data[0])
+		trainId = _trainId
+		if err != nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
 
+	} else if strings.HasPrefix(user.State, "taq-ta-") {
+		_tid, err := strconv.ParseUint(strings.TrimPrefix(user.State, "taq-ta-"), 10, 64)
+		tid = _tid
+		if err != nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
+		_train := database.GetTrainWRByTid(tid)
+		train = _train
+		if train == nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
+
+		d := strings.TrimPrefix(ctx.CallbackQuery.Data, "tr-ta-")
+		_data := strings.Split(d, "-")
+		data = _data
+		_trainId, err := strconv.Atoi(data[0])
+		trainId = _trainId
+		if err != nil {
+			b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: AnError, ShowAlert: true})
+			return nil
+		}
+
+	}
 	user.State = "normal"
 	database.UpdateTgUser(user)
 
@@ -416,7 +586,7 @@ func _trCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	//send to core
-	err = core.HandleGoFetch(train)
+	err := core.HandleGoFetch(train)
 	if err != nil {
 		b.SendMessage(ctx.EffectiveChat.Id, RajaErr, nil)
 		return nil
@@ -425,19 +595,25 @@ func _trCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	train.TrainId = trainId
 	train.Hour = data[1]
 	database.UpdateTrainWR(train)
+
+	var inlineKey = [][]gotgbot.InlineKeyboardButton{{
+		{
+			Text: core.RajaSearchButTxt,
+			Url: fmt.Sprintf(
+				core.RajaSearchURL,
+				train.Src,
+				train.Dst,
+				ptime.Unix(train.Day, 0).Format(core.RajaSearchDateFmt),
+			),
+		},
+	}}
+	if train.ThrdApp != 0 {
+		inlineKey = nil
+	}
+
 	b.SendMessage(ctx.EffectiveChat.Id, successfulCreate, &gotgbot.SendMessageOpts{
 		ReplyMarkup: &gotgbot.InlineKeyboardMarkup{
-			InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
-				{
-					Text: core.RajaSearchButTxt,
-					Url: fmt.Sprintf(
-						core.RajaSearchURL,
-						train.Src,
-						train.Dst,
-						ptime.Unix(train.Day, 0).Format(core.RajaSearchDateFmt),
-					),
-				},
-			}},
+			InlineKeyboard: inlineKey,
 		},
 	})
 

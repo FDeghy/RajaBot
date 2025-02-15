@@ -14,9 +14,10 @@ import (
 func HandleGoFetch(tr *database.TrainWR) error {
 	// create work and check already exist or not
 	wk := Work{
-		Src: tr.Src,
-		Dst: tr.Dst,
-		Day: tr.Day,
+		Src:     tr.Src,
+		Dst:     tr.Dst,
+		Day:     tr.Day,
+		ThrdApp: tr.ThrdApp,
 	}
 	mutex.RLock()
 	_, ok := workers[wk]
@@ -25,8 +26,8 @@ func HandleGoFetch(tr *database.TrainWR) error {
 		return nil
 	}
 
-	// raja api (1)
-	if tr.Dst != -1 {
+	// raja api
+	if tr.Dst != -1 && tr.ThrdApp == 0 {
 		// create fetchWorker
 		trainDayInfo := raja.TrainInfo{
 			Source:      raja.Station{Id: tr.Src},
@@ -59,7 +60,17 @@ func HandleGoFetch(tr *database.TrainWR) error {
 		mutex.Lock()
 		workers[wk] = quit
 		mutex.Unlock()
-	} else { // Dst == -1 -> ticket.rai api (2)
+
+	} else if tr.Dst != -1 && tr.ThrdApp == 1 {
+		// start fetchWorker
+		quit := make(chan struct{})
+		go fetchWorkerThrdApp(wk, quit)
+
+		mutex.Lock()
+		workers[wk] = quit
+		mutex.Unlock()
+
+	} else if tr.Dst == -1 { // -> ticket.rai api
 		// start fetchWorker
 		quit := make(chan struct{})
 		go rtFetchWorker(wk, quit)
@@ -67,6 +78,7 @@ func HandleGoFetch(tr *database.TrainWR) error {
 		mutex.Lock()
 		workers[wk] = quit
 		mutex.Unlock()
+
 	}
 
 	prometheus.SetFetchWorkersCount(len(workers))

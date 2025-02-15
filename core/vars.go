@@ -20,6 +20,7 @@ var (
 	userTimeCache = make(map[userCache]int64)
 	res           = make(chan *TrainData, config.Cfg.Raja.Buffer)
 	rtRes         = make(chan *RtTrainData, config.Cfg.Raja.Buffer)
+	thrdAppRes    = make(chan *ThrdAppTrainData, config.Cfg.Raja.Buffer)
 )
 
 var (

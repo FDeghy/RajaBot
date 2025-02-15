@@ -5,6 +5,7 @@ import (
 	"RajaBot/database"
 	"RajaBot/prometheus"
 	siteapi "RajaBot/siteApi"
+	"RajaBot/siteApi/mrbilit"
 	"RajaBot/tools"
 	"fmt"
 	"strconv"
@@ -99,6 +100,56 @@ func sendRtAlert(trainWR database.TrainWR, train siteapi.Train) {
 			train.SourceStationName,
 			train.TargetStationName,
 			train.SeatRest,
+		),
+		&gotgbot.SendMessageOpts{
+			ReplyMarkup: &gotgbot.InlineKeyboardMarkup{
+				InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
+					{
+						{
+							Text:         "❌ غیر فعال کردن",
+							CallbackData: fmt.Sprintf("canc-%v", trainWR.Id),
+						},
+					},
+				},
+			},
+		},
+	)
+
+	mutex.Lock()
+	userTimeCache[uCacheKey] = nowUnix
+	prometheus.SetUserTimeCacheCount(len(userTimeCache))
+	mutex.Unlock()
+}
+
+func sendAlertThrdApp(trainWR database.TrainWR, train *mrbilit.Trains) {
+	uCacheKey := userCache{
+		tgUserId: trainWR.UserID,
+		trainId:  trainWR.TrainId,
+	}
+	mutex.RLock()
+	lastUnix, ok := userTimeCache[uCacheKey]
+	mutex.RUnlock()
+	if !ok {
+		lastUnix = 0
+	}
+	nowUnix := time.Now().Unix()
+	if nowUnix-lastUnix < config.Cfg.Raja.AlertEvery {
+		return
+	}
+	src, _ := stations.GetPersianName(trainWR.Src)
+	dst, _ := stations.GetPersianName(trainWR.Dst)
+	ti, _ := time.ParseInLocation("2006-01-02T15:04:05", train.DepartureTime, ptime.Iran())
+	pt := ptime.New(ti)
+
+	Bot.SendMessage(
+		trainWR.UserID,
+		fmt.Sprintf(
+			AlertMsg,
+			pt.Format("HH:mm"),
+			pt.Format(TrainDate),
+			src,
+			dst,
+			train.Prices[0].Classes[0].Capacity,
 		),
 		&gotgbot.SendMessageOpts{
 			ReplyMarkup: &gotgbot.InlineKeyboardMarkup{

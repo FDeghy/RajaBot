@@ -15,6 +15,7 @@ type TrainWR struct {
 	Src     int    `json:"src"` // in homei mode is route id
 	Dst     int    `json:"dst"` // -1 mean homei
 	IsDone  bool   `json:"is_done"`
+	ThrdApp int    `json:"thrd_app"`
 }
 
 type Subscription struct {
