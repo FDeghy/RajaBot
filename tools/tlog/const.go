@@ -16,4 +16,5 @@ const (
 		"کاربر: %v" + "\n" +
 		"قطار: %v" + "\n" +
 		"تاریخ: %v"
+	DateFmt = "yyyy/MM/dd E hh:mm:ss a"
 )

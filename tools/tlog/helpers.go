@@ -16,7 +16,7 @@ func userMarkdown(userId int64) (string, error) {
 	}
 
 	return fmt.Sprintf(
-		"<a href=\"tg://openmessage?user_id=%v\">%v %v</a> %v %v",
+		"<a href=\"tg://openmessage?user_id=%v\">(%v %v)</a> (%v) @%v",
 		chat.Id,
 		chat.FirstName,
 		chat.LastName,
@@ -35,13 +35,13 @@ func SendLog(userId int64, mode Mode, opt string) {
 	if mode == Payment {
 		Bot.SendMessage(
 			config.Cfg.Bot.LogChannel,
-			fmt.Sprintf(PaymentMsg, userMD, opt, ptime.Now().String()),
+			fmt.Sprintf(PaymentMsg, userMD, opt, ptime.Now().Format(DateFmt)),
 			&gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML},
 		)
 	} else if mode == NewTrain {
 		Bot.SendMessage(
 			config.Cfg.Bot.LogChannel,
-			fmt.Sprintf(NewTrainMsg, userMD, opt, ptime.Now().String()),
+			fmt.Sprintf(NewTrainMsg, userMD, opt, ptime.Now().Format(DateFmt)),
 			&gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML},
 		)
 	}

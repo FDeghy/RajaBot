@@ -66,11 +66,13 @@ func HandleGoFetch(tr *database.TrainWR) error {
 		workers[wk] = quit
 		mutex.Unlock()
 
+		srcName, _ := stations.GetPersianName(tr.Src)
+		dstName, _ := stations.GetPersianName(tr.Dst)
 		trainMsg = fmt.Sprintf(
 			"%v -> %v, %v",
-			raja.Station{Id: tr.Src}.PersianName,
-			raja.Station{Id: tr.Dst}.PersianName,
-			ptime.Unix(tr.Day, 0).String(),
+			srcName,
+			dstName,
+			ptime.Unix(tr.Day, 0).Format(tlog.DateFmt),
 		)
 
 	} else if tr.Dst != -1 && tr.ThrdApp == 1 { // thirdapp (mrbilit)
@@ -82,11 +84,13 @@ func HandleGoFetch(tr *database.TrainWR) error {
 		workers[wk] = quit
 		mutex.Unlock()
 
+		srcName, _ := stations.GetPersianName(tr.Src)
+		dstName, _ := stations.GetPersianName(tr.Dst)
 		trainMsg = fmt.Sprintf(
 			"%v -> %v, %v",
-			raja.Station{Id: tr.Src}.PersianName,
-			raja.Station{Id: tr.Dst}.PersianName,
-			ptime.Unix(tr.Day, 0).String(),
+			srcName,
+			dstName,
+			ptime.Unix(tr.Day, 0).Format(tlog.DateFmt),
 		)
 
 	} else if tr.Dst == -1 { // -> ticket.rai api
@@ -102,7 +106,7 @@ func HandleGoFetch(tr *database.TrainWR) error {
 			"%v -> %v, %v",
 			tools.Routes.FindRoute(strconv.Itoa(tr.Src)).Src,
 			tools.Routes.FindRoute(strconv.Itoa(tr.Src)).Dst,
-			ptime.Unix(tr.Day, 0).String(),
+			ptime.Unix(tr.Day, 0).Format(tlog.DateFmt),
 		)
 
 	}
