@@ -3,7 +3,9 @@ package tools
 import (
 	"RajaBot/config"
 	"RajaBot/database"
+	"RajaBot/tools/tlog"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
@@ -79,6 +81,7 @@ func AddDaysSub(userId int64, days int) (*database.Subscription, error) {
 	sub.ExpirationDate = ptime.Unix(sub.ExpirationDate, 0).AddDate(0, 0, days).Unix()
 	sub.IsEnabled = true
 	database.UpdateSubscription(sub)
+	tlog.SendLog(userId, tlog.Payment, strconv.Itoa(days)+" روز")
 	return sub, nil
 }
 
@@ -97,5 +100,6 @@ func SetTrialSub(userId int64) (*database.Subscription, error) {
 	sub.IsTrial = true
 	sub.IsEnabled = true
 	database.UpdateSubscription(sub)
+	tlog.SendLog(userId, tlog.Payment, "فیری تریال")
 	return sub, nil
 }

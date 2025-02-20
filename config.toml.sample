@@ -10,6 +10,7 @@ favorite_stations = [ "tehran", "qom", "mashad" ]
 admins = [ 433626662 ]
 user_limit = 1
 vip_limit = 3
+log_channel = -1001234
 
 [DB]
 name = "rajabot"

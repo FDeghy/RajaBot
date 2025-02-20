@@ -11,6 +11,7 @@ type Config struct {
 		UserLimit              int      `toml:"user_limit"`
 		VipLimit               int      `toml:"vip_limit"`
 		TrialDays              int      `toml:"trial_days"`
+		LogChannel             int64    `toml:"log_channel"`
 	} `toml:"BOT"`
 	Database struct {
 		Name string `toml:"name"`

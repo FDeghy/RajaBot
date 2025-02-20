@@ -4,7 +4,11 @@ import (
 	"RajaBot/config"
 	"RajaBot/database"
 	"RajaBot/prometheus"
+	"RajaBot/tools"
+	"RajaBot/tools/tlog"
+	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/FDeghy/RajaGo/raja"
@@ -12,6 +16,7 @@ import (
 )
 
 func HandleGoFetch(tr *database.TrainWR) error {
+	var trainMsg string
 	// create work and check already exist or not
 	wk := Work{
 		Src:     tr.Src,
@@ -61,7 +66,14 @@ func HandleGoFetch(tr *database.TrainWR) error {
 		workers[wk] = quit
 		mutex.Unlock()
 
-	} else if tr.Dst != -1 && tr.ThrdApp == 1 {
+		trainMsg = fmt.Sprintf(
+			"%v -> %v, %v",
+			raja.Station{Id: tr.Src}.PersianName,
+			raja.Station{Id: tr.Dst}.PersianName,
+			ptime.Unix(tr.Day, 0).String(),
+		)
+
+	} else if tr.Dst != -1 && tr.ThrdApp == 1 { // thirdapp (mrbilit)
 		// start fetchWorker
 		quit := make(chan struct{})
 		go fetchWorkerThrdApp(wk, quit)
@@ -69,6 +81,13 @@ func HandleGoFetch(tr *database.TrainWR) error {
 		mutex.Lock()
 		workers[wk] = quit
 		mutex.Unlock()
+
+		trainMsg = fmt.Sprintf(
+			"%v -> %v, %v",
+			raja.Station{Id: tr.Src}.PersianName,
+			raja.Station{Id: tr.Dst}.PersianName,
+			ptime.Unix(tr.Day, 0).String(),
+		)
 
 	} else if tr.Dst == -1 { // -> ticket.rai api
 		// start fetchWorker
@@ -79,8 +98,16 @@ func HandleGoFetch(tr *database.TrainWR) error {
 		workers[wk] = quit
 		mutex.Unlock()
 
+		trainMsg = fmt.Sprintf(
+			"%v -> %v, %v",
+			tools.Routes.FindRoute(strconv.Itoa(tr.Src)).Src,
+			tools.Routes.FindRoute(strconv.Itoa(tr.Src)).Dst,
+			ptime.Unix(tr.Day, 0).String(),
+		)
+
 	}
 
 	prometheus.SetFetchWorkersCount(len(workers))
+	tlog.SendLog(tr.UserID, tlog.NewTrain, trainMsg)
 	return nil
 }

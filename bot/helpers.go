@@ -6,6 +6,7 @@ import (
 	"RajaBot/core"
 	"RajaBot/payment"
 	"RajaBot/tools"
+	"RajaBot/tools/tlog"
 	"errors"
 	"log"
 	"net/http"
@@ -63,6 +64,8 @@ func CreateBot() error {
 	payment.Bot = bot
 	// set Bot in tools
 	tools.Bot = bot
+	// set Bot in tlog
+	tlog.Bot = bot
 
 	return nil
 }
