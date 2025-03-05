@@ -64,7 +64,7 @@ func _new(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	if Stations == nil || Routes == nil {
+	if Stations == nil {//|| Routes == nil {
 		b.SendMessage(ctx.EffectiveChat.Id, StationsLoadErr, nil)
 		return nil
 	}
@@ -75,7 +75,7 @@ func _new(b *gotgbot.Bot, ctx *ext.Context) error {
 		},
 		ReplyMarkup: &gotgbot.InlineKeyboardMarkup{
 			InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
-				{{Text: NormalRajaBtn, CallbackData: "new-raja"}, {Text: HomeiBtn, CallbackData: "new-homei"}},
+				{{Text: NormalRajaBtn, CallbackData: "new-raja"}}, //{Text: HomeiBtn, CallbackData: "new-homei"}},
 				{{Text: ThrdAppBtn, CallbackData: "new-thrdapp"}},
 			},
 		},
