@@ -50,10 +50,10 @@ func CreateBot() error {
 		return errors.New("failed to load stations")
 	}
 	// load routes
-	err = loadRoutes()
-	if err != nil {
-		return errors.New("failed to load routes")
-	}
+	//err = loadRoutes()
+	//if err != nil {
+	//	return errors.New("failed to load routes")
+	//}
 
 	dispatcher = ext.NewDispatcher(&ext.DispatcherOpts{})
 	updater = ext.NewUpdater(dispatcher, nil)
